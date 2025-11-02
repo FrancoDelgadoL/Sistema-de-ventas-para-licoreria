@@ -409,3 +409,4 @@ D:\Franco\workspace\Ezel-Market\obj\Debug\net9.0\refint\Ezel-Market.dll
 D:\Franco\workspace\Ezel-Market\obj\Debug\net9.0\Ezel-Market.pdb
 D:\Franco\workspace\Ezel-Market\obj\Debug\net9.0\Ezel-Market.genruntimeconfig.cache
 D:\Franco\workspace\Ezel-Market\obj\Debug\net9.0\ref\Ezel-Market.dll
+D:\Franco\workspace\Ezel-Market\obj\Debug\net9.0\Ezel-Market.sourcelink.json
