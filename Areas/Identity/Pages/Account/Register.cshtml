@@ -80,6 +80,20 @@
 <main>
     <div class="register-card">
         <h2>Crear una cuenta</h2>
+        <!-- ✅ AGREGAR AQUÍ EL MENSAJE DE CONFIRMACIÓN -->
+        @if (ViewData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert" 
+                 style="border-left: 4px solid #28a745; background-color: #f8fff9;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <div>
+                        <strong>¡Éxito!</strong> @ViewData["SuccessMessage"]
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
 
         <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
@@ -98,7 +112,7 @@
                 <span asp-validation-for="Input.Apellido" class="text-danger"></span>
             </div>
             
-                        <!-- Campo Fecha de Nacimiento agregado -->
+
             <div class="form-floating mb-3">
                 <input asp-for="Input.FechaNacimiento" class="form-control" 
                     type="date" 
