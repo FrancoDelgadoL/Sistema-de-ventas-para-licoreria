@@ -16,7 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<Usuarios>
         base.OnModelCreating(builder);
         builder.Entity<Usuarios>().ToTable("t_usuario");
 
-                // SEED DATA PARA para Roles
+        // SEED DATA PARA para Roles
         builder.Entity<IdentityRole>().HasData(
              new IdentityRole
              {
@@ -31,6 +31,20 @@ public class ApplicationDbContext : IdentityDbContext<Usuarios>
                 Name = "Administrador",
                 NormalizedName = "ADMINISTRADOR",
                 ConcurrencyStamp = "e6d5c4b3-a2b1-4c8d-9e0f-1a2b3c4d5e6f"
+            },
+            new IdentityRole
+            {
+                Id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                Name = "Gerente",
+                NormalizedName = "GERENTE",
+                ConcurrencyStamp = "c29b1a1f-8b3c-4d5e-9f6a-1b2c3d4e5f6a"
+            },
+            new IdentityRole
+            {
+                Id = "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                Name = "Inventario",
+                NormalizedName = "INVENTARIO",
+                ConcurrencyStamp = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a"
             }
         );
         
