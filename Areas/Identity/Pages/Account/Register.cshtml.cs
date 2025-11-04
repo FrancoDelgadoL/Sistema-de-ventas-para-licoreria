@@ -163,10 +163,10 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
                     //Limpia el formulario para que no queden los datos
                     ModelState.Clear();
                     
-                    // ✅ CREAR NUEVO MODELO VACÍO
+                    //crea nuevo modelo
                     Input = new InputModel();
             
-                    // ✅ MENSAJE DE ÉXITO
+                    //Mensaje
                     ViewData["SuccessMessage"] = $"¡Registro exitoso! Bienvenido {user.Nombre}. Tu cuenta ha sido creada correctamente.";
 
                     
