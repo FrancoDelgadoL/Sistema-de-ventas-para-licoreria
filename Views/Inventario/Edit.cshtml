@@ -1,0 +1,48 @@
+@model Ezel_Market.Models.Inventario
+
+@{
+    ViewData["Title"] = "Editar Producto";
+}
+
+<h1>Editar producto</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="NombreProducto"></label>
+        <input asp-for="NombreProducto" class="form-control" />
+        <span asp-validation-for="NombreProducto" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Categoria"></label>
+        <input asp-for="Categoria" class="form-control" />
+        <span asp-validation-for="Categoria" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Cantidad"></label>
+        <input asp-for="Cantidad" class="form-control" />
+        <span asp-validation-for="Cantidad" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="PrecioCompra"></label>
+        <input asp-for="PrecioCompra" class="form-control" />
+        <span asp-validation-for="PrecioCompra" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="PrecioVenta"></label>
+        <input asp-for="PrecioVenta" class="form-control" />
+        <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-secondary mt-2">Cancelar</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

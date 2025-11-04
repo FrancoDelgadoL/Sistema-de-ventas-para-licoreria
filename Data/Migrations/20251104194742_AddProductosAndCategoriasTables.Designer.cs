@@ -3,6 +3,7 @@ using System;
 using Ezel_Market.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ezel_Market.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104194742_AddProductosAndCategoriasTables")]
+    partial class AddProductosAndCategoriasTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -234,20 +237,6 @@ namespace Ezel_Market.Data.Migrations
                             ConcurrencyStamp = "e6d5c4b3-a2b1-4c8d-9e0f-1a2b3c4d5e6f",
                             Name = "Administrador",
                             NormalizedName = "ADMINISTRADOR"
-                        },
-                        new
-                        {
-                            Id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-                            ConcurrencyStamp = "c29b1a1f-8b3c-4d5e-9f6a-1b2c3d4e5f6a",
-                            Name = "Gerente",
-                            NormalizedName = "GERENTE"
-                        },
-                        new
-                        {
-                            Id = "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-                            ConcurrencyStamp = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a",
-                            Name = "Inventario",
-                            NormalizedName = "INVENTARIO"
                         });
                 });
 

@@ -1,1 +1,41 @@
-<p>Eres Cliente</p>
+@* 1. Declara qué tipo de "Modelo" espera esta vista: una Lista de Productos *@
+@model IEnumerable<Ezel_Market.Models.Productos>
+
+@{
+    ViewData["Title"] = "Catálogo de Productos";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Nuestro Catálogo</h1>
+    <p>¡Bienvenido! Explora nuestras ofertas.</p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+
+    @foreach (var producto in Model)
+    {
+        <div class="col">
+            <div class="card h-100">
+                <img src="@producto.Imagen" class="card-img-top" alt="@producto.Nombre">
+                
+                <div class="card-body">
+                    <h5 class="card-title">@producto.Nombre</h5>
+                    
+                    @* Comprobamos si la Categoría no es nula antes de mostrarla *@
+                    @if (producto.Categoria != null)
+                    {
+                        <p class="card-text text-muted">@producto.Categoria.Nombre</p>
+                    }
+                    
+                    <p class="card-text">@producto.Descripcion</p>
+                </div>
+                
+                <div class="card-footer">
+                    <h4 class="text-end text-success">S/ @producto.Precio.ToString("0.00")</h4>
+                    <a href="#" class="btn btn-primary w-100">Añadir al carrito</a>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
