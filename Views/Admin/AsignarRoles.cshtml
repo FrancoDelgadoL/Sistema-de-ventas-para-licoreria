@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignar Roles - Panel Admin</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="~/css/Admin/AsignarRoles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <h3 class="mb-0">Panel <span class="text-primary">Admin</span></h3>
+            <small class="text-muted">Sistema de gestión</small>
+        </div>
+        
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/Admin/Index">
+                <i class="bi bi-house-door me-2"></i> Inicio
+            </a>
+            <a class="nav-link" href="/Admin/ListarUsuarios">
+                <i class="bi bi-people me-2"></i> Usuarios
+            </a>
+            <a class="nav-link active" href="/Admin/AsignarRoles">
+                <i class="bi bi-person-gear me-2"></i> Asignar Roles
+            </a>
+            <a class="nav-link" href="/Admin/Perfil">
+                <i class="bi bi-person me-2"></i> Perfil
+            </a>
+
+            <button type="button" class="nav-link text-danger w-100 text-start bg-transparent border-0 p-0" 
+                    data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+            </button>
+        </nav>
+        
+        <div class="user-info">
+            <p class="mb-1">Administrador</p>
+            <p class="mb-0">Último acceso: Hoy</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="section-header">
+                <h3><i class="bi bi-person-gear me-2"></i>Gestión de Usuarios y Roles</h3>
+            </div>
+
+            <!-- Mensajes -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- SECCIÓN 1: FORMULARIO PARA AGREGAR NUEVO USUARIO -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-plus me-2"></i>Agregar Nuevo Usuario
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="formAgregarUsuario" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" name="Nombre" class="form-control" required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="Nombre" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Apellido</label>
+                                    <input type="text" name="Apellido" class="form-control" required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="Apellido" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="Email" class="form-control" required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="Email" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre de Usuario</label>
+                                    <input type="text" name="UserName" class="form-control" required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="UserName" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Contraseña</label>
+                                    <input type="password" name="Password" class="form-control" required minlength="6" />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Confirmar Contraseña</label>
+                                    <input type="password" name="ConfirmPassword" class="form-control" required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="ConfirmPassword" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Rol</label>
+                                    <select name="RolSeleccionado" class="form-select" required>
+                                        <option value="">Seleccionar rol...</option>
+                                        @foreach (var rol in Model.RolesDisponibles)
+                                        {
+                                            <option value="@rol.Value">@rol.Text</option>
+                                        }
+                                    </select>
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="RolSeleccionado" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <!-- Botón que abre el modal en lugar de submit directo -->
+                                <button type="button" class="btn btn-success w-100" id="btnConfirmarAgregar">
+                                    <i class="bi bi-person-plus me-1"></i> Crear Usuario
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: LISTA DE USUARIOS EXISTENTES PARA ASIGNAR ROLES -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>Usuarios Existentes - Asignar Roles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-users">
+                            <thead class="table-header-custom">
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Email</th>
+                                    <th>Rol Actual</th>
+                                    <th>Nuevo Rol</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Usuarios != null && Model.Usuarios.Count > 0)
+                                {
+                                    foreach (var usuario in Model.Usuarios)
+                                    {
+                                        <tr class="fade-in" data-user-id="@usuario.Id">
+                                            <td>
+                                                <div class="user-avatar-container">
+                                                    <img src="https://ui-avatars.com/api/?name=@(usuario.Nombre)+@(usuario.Apellido)&background=0a192f&color=42a5f5&bold=true" 
+                                                         alt="@usuario.Nombre" class="user-avatar">
+                                                    <strong class="ms-2">@usuario.UserName</strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="user-info">
+                                                    <strong class="user-name">@usuario.Nombre @usuario.Apellido</strong>
+                                                </div>
+                                            </td>
+                                            <td class="user-email">@usuario.Email</td>
+                                            <td>
+                                                <span class="badge 
+                                                    @(usuario.Rol == "Administrador" ? "bg-danger" : 
+                                                    usuario.Rol == "Gerente" ? "bg-warning" : 
+                                                    usuario.Rol == "Inventario" ? "bg-success" : 
+                                                    usuario.Rol == "Cliente" ? "bg-primary" : 
+                                                    "bg-secondary")">
+                                                    @usuario.Rol
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm select-rol" 
+                                                        data-user-id="@usuario.Id">
+                                                    <option value="">Seleccionar rol...</option>
+                                                    @foreach (var rol in Model.RolesDisponibles)
+                                                    {
+                                                        <option value="@rol.Value">@rol.Text</option>
+                                                    }
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-sm btn-success btn-asignar" 
+                                                            data-user-id="@usuario.Id"
+                                                            disabled>
+                                                        <i class="bi bi-check-lg me-1"></i> Asignar
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center no-users">
+                                            <i class="bi bi-people display-4 text-muted"></i>
+                                            <p class="mt-3">No hay usuarios registrados</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Agregar Usuario -->
+    <div class="modal fade" id="confirmarAgregarModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus me-2"></i> Confirmar Creación de Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas crear el siguiente usuario?</p>
+                    <div class="alert alert-info">
+                        <strong id="modalNombreCompleto"></strong><br>
+                        <small>Email: <span id="modalEmail"></span></small><br>
+                        <small>Usuario: <span id="modalUserName"></span></small><br>
+                        <small>Rol: <span id="modalRol"></span></small>
+                    </div>
+                    <p class="text-muted"><small>El usuario podrá iniciar sesión inmediatamente con la contraseña proporcionada.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnConfirmarEnviar">
+                        <i class="bi bi-check-lg me-1"></i> Sí, Crear Usuario
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cerrar sesión?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form asp-area="Identity" asp-page="/Account/Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal para agregar usuario
+            const btnConfirmarAgregar = document.getElementById('btnConfirmarAgregar');
+            const btnConfirmarEnviar = document.getElementById('btnConfirmarEnviar');
+            const formAgregarUsuario = document.getElementById('formAgregarUsuario');
+            const confirmarAgregarModal = new bootstrap.Modal(document.getElementById('confirmarAgregarModal'));
+
+            btnConfirmarAgregar.addEventListener('click', function() {
+                // Validar formulario primero
+                if (!formAgregarUsuario.checkValidity()) {
+                    formAgregarUsuario.reportValidity();
+                    return;
+                }
+
+                // Obtener datos del formulario
+                const formData = new FormData(formAgregarUsuario);
+                const nombre = formData.get('Nombre');
+                const apellido = formData.get('Apellido');
+                const email = formData.get('Email');
+                const userName = formData.get('UserName');
+                const rol = formData.get('RolSeleccionado');
+
+                // Mostrar datos en el modal
+                document.getElementById('modalNombreCompleto').textContent = nombre + ' ' + apellido;
+                document.getElementById('modalEmail').textContent = email;
+                document.getElementById('modalUserName').textContent = userName;
+                document.getElementById('modalRol').textContent = rol;
+
+                // Mostrar modal
+                confirmarAgregarModal.show();
+            });
+
+            // Confirmar envío del formulario
+            btnConfirmarEnviar.addEventListener('click', function() {
+                // Cambiar la acción del formulario
+                formAgregarUsuario.action = '/Admin/AgregarNuevoUsuario';
+                // Enviar formulario
+                formAgregarUsuario.submit();
+            });
+
+            // Habilitar botón cuando se selecciona un rol (para usuarios existentes)
+            document.querySelectorAll('.select-rol').forEach(select => {
+                select.addEventListener('change', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const btnAsignar = document.querySelector(`.btn-asignar[data-user-id="${userId}"]`);
+                    btnAsignar.disabled = !this.value;
+                });
+            });
+
+            // Asignar rol a usuario existente
+            document.querySelectorAll('.btn-asignar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const select = document.querySelector(`.select-rol[data-user-id="${userId}"]`);
+                    const rolSeleccionado = select.value;
+
+                    if (!rolSeleccionado) {
+                        alert('Por favor selecciona un rol');
+                        return;
+                    }
+
+                    if (confirm(`¿Estás seguro de asignar el rol "${rolSeleccionado}" a este usuario?`)) {
+                        // Crear formulario para enviar
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/Admin/AsignarRol';
+
+                        // CSRF Token
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '__RequestVerificationToken';
+                        csrfInput.value = csrfToken;
+                        form.appendChild(csrfInput);
+
+                        // Datos
+                        const userIdInput = document.createElement('input');
+                        userIdInput.type = 'hidden';
+                        userIdInput.name = 'usuarioId';
+                        userIdInput.value = userId;
+                        form.appendChild(userIdInput);
+
+                        const rolInput = document.createElement('input');
+                        rolInput.type = 'hidden';
+                        rolInput.name = 'rolSeleccionado';
+                        rolInput.value = rolSeleccionado;
+                        form.appendChild(rolInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+
+            // Validación de confirmación de contraseña
+            const password = document.querySelector('input[name="Password"]');
+            const confirmPassword = document.querySelector('input[name="ConfirmPassword"]');
+            
+            function validatePassword() {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity("Las contraseñas no coinciden");
+                } else {
+                    confirmPassword.setCustomValidity("");
+                }
+            }
+
+            password.addEventListener('change', validatePassword);
+            confirmPassword.addEventListener('keyup', validatePassword);
+        });
+    </script>
+</body>
+</html>
