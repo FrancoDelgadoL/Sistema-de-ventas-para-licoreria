@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-Ezel_Market-b5b9a4aa-565e-4cea-ad13-57430a4da169</UserSecretsId>
     <RootNamespace>Ezel_Market</RootNamespace>

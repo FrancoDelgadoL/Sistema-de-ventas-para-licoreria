@@ -1,0 +1,16 @@
+bin/
+obj/
+out/
+Debug/
+Release/
+publish/
+*.exe
+*.dll
+*.log
+*.db
+*.pdb
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3

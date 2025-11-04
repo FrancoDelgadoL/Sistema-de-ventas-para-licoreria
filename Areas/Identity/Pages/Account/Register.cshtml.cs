@@ -18,31 +18,36 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Ezel_Market.Models;
 
 namespace Ezel_Market.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IUserStore<IdentityUser> _userStore;
-        private readonly IUserEmailStore<IdentityUser> _emailStore;
+        private readonly SignInManager<Usuarios> _signInManager;
+        private readonly UserManager<Usuarios> _userManager;
+        private readonly IUserStore<Usuarios> _userStore;
+        private readonly IUserEmailStore<Usuarios> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
+        
+
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
-            IUserStore<IdentityUser> userStore,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<Usuarios> userManager,
+            IUserStore<Usuarios> userStore,
+            SignInManager<Usuarios> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+           
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
-            _emailSender = emailSender;
+            
+            _roleManager = roleManager;
         }
 
         /// <summary>
@@ -70,6 +75,24 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
         /// </summary>
         public class InputModel
         {
+
+            [Required(ErrorMessage = "El nombre es obligatorio")]
+            [StringLength(30, ErrorMessage = "El nombre no puede exceder 50 caracteres")]
+            [Display(Name = "Nombre")]
+            public string Nombre { get; set; }     // Usuario
+
+            [Required(ErrorMessage = "El nombre es obligatorio")]
+            [StringLength(50, ErrorMessage = "El nombre no puede exceder 50 caracteres")]
+            [Display(Name = "Apellido")]
+            public string Apellido { get; set; }   // Usuario
+
+            [Required(ErrorMessage = "La fecha de nacimiento es obligatoria")]
+            [DataType(DataType.Date)]
+            [Display(Name = "Fecha de Nacimiento")]
+            [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+            [CustomValidation(typeof(Usuarios), "ValidateFechaNacimiento")]
+            public DateTime FechaNacimiento { get; set; }
+            
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
@@ -116,33 +139,27 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                
+                user.Nombre = Input.Nombre;
+                user.Apellido = Input.Apellido;
+                user.FechaNacimiento = Input.FechaNacimiento;              
+                
+                
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                        protocol: Request.Scheme);
-
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    if (!await _roleManager.RoleExistsAsync("Cliente"))
                     {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+                        await _roleManager.CreateAsync(new IdentityRole("Cliente"));
                     }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
+
+                    await _userManager.AddToRoleAsync(user, "Cliente");
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(returnUrl);
                 }
                 foreach (var error in result.Errors)
                 {
@@ -154,11 +171,11 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private IdentityUser CreateUser()
+        private Usuarios CreateUser()
         {
             try
             {
-                return Activator.CreateInstance<IdentityUser>();
+                return Activator.CreateInstance<Usuarios>();
             }
             catch
             {
@@ -168,13 +185,13 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
             }
         }
 
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<Usuarios> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<Usuarios>)_userStore;
         }
     }
 }
