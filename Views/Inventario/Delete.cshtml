@@ -1,0 +1,20 @@
+@model Ezel_Market.Models.Inventario
+
+@{
+    ViewData["Title"] = "Eliminar Producto";
+}
+
+<h1>¿Seguro que deseas eliminar este producto?</h1>
+
+<div>
+    <h4>@Model.NombreProducto</h4>
+    <p>Categoría: @Model.Categoria</p>
+    <p>Cantidad: @Model.Cantidad</p>
+    <p>Precio Venta: @Model.PrecioVenta</p>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
