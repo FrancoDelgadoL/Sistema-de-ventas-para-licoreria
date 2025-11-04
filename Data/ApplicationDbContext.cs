@@ -12,8 +12,8 @@ namespace Ezel_Market.Data
         {
         }
 
-        // PRODUCTOS Y CATEGORIAS
-        public DbSet<Productos> Productos { get; set; }
+        // INVENTARIO Y CATEGORIAS
+        public DbSet<Inventario> Inventario { get; set; }
         public DbSet<Categorias> Categoria { get; set; }
 
         // INVENTARIO

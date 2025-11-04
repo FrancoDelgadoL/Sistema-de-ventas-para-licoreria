@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -7,7 +8,7 @@
 namespace Ezel_Market.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddProductosAndCategoriasTables : Migration
+    public partial class CrearTablasInventariosYCategorias : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,25 +28,26 @@ namespace Ezel_Market.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Productos",
+                name: "Inventario",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", nullable: false),
-                    Descripcion = table.Column<string>(type: "TEXT", nullable: true),
-                    Precio = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Stock = table.Column<int>(type: "INTEGER", nullable: false),
+                    NombreProducto = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     CategoriasId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Cantidad = table.Column<int>(type: "INTEGER", nullable: false),
+                    PrecioCompra = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    PrecioVenta = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    FechaIngreso = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Marca = table.Column<string>(type: "TEXT", nullable: true),
                     GradoAlcohol = table.Column<decimal>(type: "TEXT", nullable: true),
                     Imagen = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Productos", x => x.Id);
+                    table.PrimaryKey("PK_Inventario", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Productos_Categoria_CategoriasId",
+                        name: "FK_Inventario_Categoria_CategoriasId",
                         column: x => x.CategoriasId,
                         principalTable: "Categoria",
                         principalColumn: "Id",
@@ -68,8 +70,8 @@ namespace Ezel_Market.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Productos_CategoriasId",
-                table: "Productos",
+                name: "IX_Inventario_CategoriasId",
+                table: "Inventario",
                 column: "CategoriasId");
         }
 
@@ -77,7 +79,7 @@ namespace Ezel_Market.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Productos");
+                name: "Inventario");
 
             migrationBuilder.DropTable(
                 name: "Categoria");
