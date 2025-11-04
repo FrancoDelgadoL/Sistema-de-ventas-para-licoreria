@@ -1,6 +1,11 @@
-#nullable enable
-public class Productos
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Ezel_Market.Models
 {
+    #nullable enable
+    public class Productos
+    {
     public int Id { get; set; }
     public required string Nombre { get; set; }
     public string? Descripcion { get; set; }
@@ -16,4 +21,5 @@ public class Productos
 
     // Puedes guardar la imagen como URL
     public string? Imagen { get; set; }
+    }
 }

@@ -1,6 +1,10 @@
-#nullable enable
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
-public class Categorias
+namespace Ezel_Market.Models
+{
+    #nullable enable
+    public class Categorias
 {
     public int Id { get; set; }
     public required string Nombre { get; set; }
@@ -8,4 +12,5 @@ public class Categorias
 
     // Relación uno a muchos con Productos
     public ICollection<Productos>? Productos { get; set; }
+    }
 }
