@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Ezel_Market.Data;
+using Ezel_Market.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +11,34 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+// Configuración de Identity con tu modelo Usuario - MODIFICADO
+builder.Services.AddIdentity<Usuarios, IdentityRole>(options =>
+{
+    // Cambiar a false para desarrollo (no requiere confirmación de email)
+    options.SignIn.RequireConfirmedAccount = false;
+
+    // Configuración adicional recomendada
+    options.SignIn.RequireConfirmedAccount = false; // IMPORTANTE
+    options.SignIn.RequireConfirmedEmail = false;   // IMPORTANTE
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    //options.User.RequireUniqueEmail = true;
+
+    // Opcional: Configuración de usuario
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+
 
 var app = builder.Build();
 
@@ -29,8 +55,10 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
+app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapStaticAssets();

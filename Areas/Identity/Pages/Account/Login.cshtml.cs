@@ -14,17 +14,20 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Ezel_Market.Models;
 
 namespace Ezel_Market.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<Usuarios> _signInManager;
+        private readonly UserManager<Usuarios> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<Usuarios> signInManager, ILogger<LoginModel> logger, UserManager<Usuarios> userManager)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -112,11 +115,36 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+
+                    // Obtener el usuario que acaba de iniciar sesión
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                    if(user != null)
+                    {
+                        if (await _userManager.IsInRoleAsync(user, "Administrador"))
+                        {
+                            // Redirigir a CONTROLADOR MVC (no a página Razor)
+                            return RedirectToAction("Index", "Admin");
+                        }
+                        else if (await _userManager.IsInRoleAsync(user, "Cliente"))
+                        {
+                            return RedirectToAction("Index", "Cliente");
+                        }
+                    }
+                    else
+                    {
+                        return LocalRedirect(returnUrl);                       
+                    }
+
+
                 }
+                
+                
+                
                 if (result.RequiresTwoFactor)
                 {
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
