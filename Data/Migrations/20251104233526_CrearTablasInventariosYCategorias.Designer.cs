@@ -11,14 +11,82 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ezel_Market.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251104181935_CrearTablaInventario")]
-    partial class CrearTablaInventario
+    [Migration("20251104233526_CrearTablasInventariosYCategorias")]
+    partial class CrearTablasInventariosYCategorias
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
+
+            modelBuilder.Entity("Ezel_Market.Models.Categorias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categoria");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Descripcion = "Bebidas a base de cebada fermentada",
+                            Nombre = "Cervezas"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Descripcion = "Bebidas a base de uva fermentada",
+                            Nombre = "Vinos"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Descripcion = "Destilados de uva",
+                            Nombre = "Piscos"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Descripcion = "Destilados de caña de azúcar",
+                            Nombre = "Rones"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Descripcion = "Destilados de grano envejecidos en madera",
+                            Nombre = "Whisky"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Descripcion = "Destilados de agave azul",
+                            Nombre = "Tequila"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Descripcion = "Destilados blancos y ginebras",
+                            Nombre = "Vodka y Gin"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Descripcion = "Mezcladores, gaseosas y otros",
+                            Nombre = "Complementos"
+                        });
+                });
 
             modelBuilder.Entity("Ezel_Market.Models.Inventario", b =>
                 {
@@ -29,12 +97,19 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Categoria")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("CategoriasId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("FechaIngreso")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("GradoAlcohol")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Imagen")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Marca")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NombreProducto")
@@ -50,7 +125,9 @@ namespace Ezel_Market.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Inventarios");
+                    b.HasIndex("CategoriasId");
+
+                    b.ToTable("Inventario");
                 });
 
             modelBuilder.Entity("Ezel_Market.Models.Usuarios", b =>
@@ -169,6 +246,20 @@ namespace Ezel_Market.Data.Migrations
                             ConcurrencyStamp = "e6d5c4b3-a2b1-4c8d-9e0f-1a2b3c4d5e6f",
                             Name = "Administrador",
                             NormalizedName = "ADMINISTRADOR"
+                        },
+                        new
+                        {
+                            Id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            ConcurrencyStamp = "c29b1a1f-8b3c-4d5e-9f6a-1b2c3d4e5f6a",
+                            Name = "Gerente",
+                            NormalizedName = "GERENTE"
+                        },
+                        new
+                        {
+                            Id = "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                            ConcurrencyStamp = "7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a",
+                            Name = "Inventario",
+                            NormalizedName = "INVENTARIO"
                         });
                 });
 
@@ -274,6 +365,17 @@ namespace Ezel_Market.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Ezel_Market.Models.Inventario", b =>
+                {
+                    b.HasOne("Ezel_Market.Models.Categorias", "Categoria")
+                        .WithMany("Inventario")
+                        .HasForeignKey("CategoriasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categoria");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -323,6 +425,11 @@ namespace Ezel_Market.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Ezel_Market.Models.Categorias", b =>
+                {
+                    b.Navigation("Inventario");
                 });
 #pragma warning restore 612, 618
         }

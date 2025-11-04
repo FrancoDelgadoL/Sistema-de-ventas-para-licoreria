@@ -35,7 +35,7 @@ namespace Ezel_Market.Controllers
         public async Task<IActionResult> Index()
         {
             // Esta es la consulta que jala los productos
-            var productos = await _context.Productos  // De la tabla Productos
+            var productos = await _context.Inventario  // De la tabla Inventario
                 .Include(p => p.Categoria)           // Incluye la info de Categoria
                 .ToListAsync();                      // Tráelos como una lista
 

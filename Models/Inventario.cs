@@ -14,10 +14,9 @@ namespace Ezel_Market.Models
         [Display(Name = "Nombre del Producto")]
         public string NombreProducto { get; set; }
 
-        [Required(ErrorMessage = "La categoría es obligatoria")]
-        [StringLength(50)]
-        [Display(Name = "Categoría")]
-        public string Categoria { get; set; }
+        // Relación con Categoría
+        public int CategoriasId { get; set; }
+        public Categorias Categoria { get; set; }
 
         [Required(ErrorMessage = "La cantidad es obligatoria")]
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
@@ -37,5 +36,11 @@ namespace Ezel_Market.Models
         [Display(Name = "Fecha de ingreso")]
         [DataType(DataType.Date)]
         public DateTime FechaIngreso { get; set; } = DateTime.Now;
+
+        public string Marca { get; set; }
+        public decimal? GradoAlcohol { get; set; }
+
+        // Puedes guardar la imagen como URL
+        public string Imagen { get; set; }
     }
 }
