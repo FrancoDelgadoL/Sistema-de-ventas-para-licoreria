@@ -158,8 +158,23 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
 
                     await _userManager.AddToRoleAsync(user, "Cliente");
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl);
+                    System.Diagnostics.Debug.WriteLine("REGISTRO EXITOSO - Mostrando mensaje");
+                    
+                    //Limpia el formulario para que no queden los datos
+                    ModelState.Clear();
+                    
+                    // ✅ CREAR NUEVO MODELO VACÍO
+                    Input = new InputModel();
+            
+                    // ✅ MENSAJE DE ÉXITO
+                    ViewData["SuccessMessage"] = $"¡Registro exitoso! Bienvenido {user.Nombre}. Tu cuenta ha sido creada correctamente.";
+
+                    
+                    return Page();
+                    //Inicio de Sesiòn automatico
+                    //await _signInManager.SignInAsync(user, isPersistent: false);
+                    
+                    //return LocalRedirect(returnUrl);
                 }
                 foreach (var error in result.Errors)
                 {
