@@ -20,8 +20,8 @@ namespace Ezel_Market.Controllers
         private readonly UserManager<Usuarios> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AdminController(ApplicationDbContext context, 
-                             ILogger<AdminController> logger, 
+        public AdminController(ApplicationDbContext context,
+                             ILogger<AdminController> logger,
                              UserManager<Usuarios> userManager,
                              RoleManager<IdentityRole> roleManager)
         {
@@ -40,11 +40,11 @@ namespace Ezel_Market.Controllers
         {
             var usuariosConRoles = new List<UsuarioConRol>();
             var todosUsuarios = _context.Users.ToList();
-    
+
             foreach (var user in todosUsuarios)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-        
+
                 var usuario = new UsuarioConRol
                 {
                     Id = user.Id,
@@ -54,7 +54,7 @@ namespace Ezel_Market.Controllers
                     Email = user.Email,
                     Rol = roles.FirstOrDefault() ?? "Sin rol"
                 };
-        
+
                 usuariosConRoles.Add(usuario);
             }
 
@@ -76,7 +76,7 @@ namespace Ezel_Market.Controllers
                 foreach (var user in todosUsuarios)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
-                    
+
                     var usuario = new UsuarioConRol
                     {
                         Id = user.Id,
@@ -212,7 +212,7 @@ namespace Ezel_Market.Controllers
 
                 // Obtener roles actuales del usuario
                 var rolesActuales = await _userManager.GetRolesAsync(usuario);
-                
+
                 // Remover todos los roles actuales
                 if (rolesActuales.Any())
                 {
@@ -227,7 +227,7 @@ namespace Ezel_Market.Controllers
 
                 // Agregar el nuevo rol
                 var addResult = await _userManager.AddToRoleAsync(usuario, rolSeleccionado);
-                
+
                 if (addResult.Succeeded)
                 {
                     _logger.LogInformation($"Rol {rolSeleccionado} asignado al usuario {usuario.Email}");
@@ -280,7 +280,7 @@ namespace Ezel_Market.Controllers
 
                 // Eliminar usuario con Identity
                 var result = await _userManager.DeleteAsync(usuario);
-            
+
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"Usuario {usuario.Email} eliminado exitosamente");
@@ -306,10 +306,10 @@ namespace Ezel_Market.Controllers
         private async Task<List<SelectListItem>> GetRolesDisponibles()
         {
             return await _context.Roles
-                .Select(r => new SelectListItem 
-                { 
-                    Value = r.Name, 
-                    Text = r.Name 
+                .Select(r => new SelectListItem
+                {
+                    Value = r.Name,
+                    Text = r.Name
                 })
                 .ToListAsync();
         }
@@ -326,5 +326,46 @@ namespace Ezel_Market.Controllers
                 }
             }
         }
+        // ⚙️ MÉTODO TEMPORAL para asignar rol Administrador
+        [AllowAnonymous]
+        [HttpGet("Admin/AsignarAdmin")]
+        public async Task<IActionResult> AsignarAdmin()
+        {
+            try
+            {
+                // 📌 Configura aquí el correo de tu usuario administrador
+                string adminEmail = "tu_correo_admin@correo.com";
+
+                // Buscar el usuario
+                var usuario = await _userManager.FindByEmailAsync(adminEmail);
+
+                if (usuario == null)
+                {
+                    return Content($"❌ No se encontró ningún usuario con el correo {adminEmail}");
+                }
+
+                // Crear el rol si no existe
+                if (!await _roleManager.RoleExistsAsync("Administrador"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Administrador"));
+                }
+
+                // Asignar el rol si aún no lo tiene
+                if (!await _userManager.IsInRoleAsync(usuario, "Administrador"))
+                {
+                    await _userManager.AddToRoleAsync(usuario, "Administrador");
+                    return Content($"✅ El usuario {adminEmail} ahora tiene el rol de Administrador");
+                }
+                else
+                {
+                    return Content($"ℹ️ El usuario {adminEmail} ya tenía el rol de Administrador");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Content($"⚠️ Error al asignar rol: {ex.Message}");
+            }
+        }
+
     }
 }
