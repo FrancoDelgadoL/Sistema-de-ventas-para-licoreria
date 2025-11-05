@@ -11,6 +11,6 @@ namespace Ezel_Market.Models
     public string? Descripcion { get; set; }
 
     // Relación uno a muchos con Productos
-    public ICollection<Productos>? Productos { get; set; }
+    public ICollection<Inventario>? Inventario { get; set; }
     }
 }

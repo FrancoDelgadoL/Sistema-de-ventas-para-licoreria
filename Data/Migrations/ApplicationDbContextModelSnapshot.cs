@@ -17,7 +17,7 @@ namespace Ezel_Market.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
-            modelBuilder.Entity("Categorias", b =>
+            modelBuilder.Entity("Ezel_Market.Models.Categorias", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,12 +94,19 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Categoria")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("CategoriasId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("FechaIngreso")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("GradoAlcohol")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Imagen")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Marca")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NombreProducto")
@@ -115,7 +122,9 @@ namespace Ezel_Market.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Inventarios");
+                    b.HasIndex("CategoriasId");
+
+                    b.ToTable("Inventario");
                 });
 
             modelBuilder.Entity("Ezel_Market.Models.Usuarios", b =>
@@ -353,42 +362,15 @@ namespace Ezel_Market.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Productos", b =>
+            modelBuilder.Entity("Ezel_Market.Models.Inventario", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                    b.HasOne("Ezel_Market.Models.Categorias", "Categoria")
+                        .WithMany("Inventario")
+                        .HasForeignKey("CategoriasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<int>("CategoriasId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("GradoAlcohol")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Imagen")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Marca")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Precio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoriasId");
-
-                    b.ToTable("Productos");
+                    b.Navigation("Categoria");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -442,20 +424,9 @@ namespace Ezel_Market.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Productos", b =>
+            modelBuilder.Entity("Ezel_Market.Models.Categorias", b =>
                 {
-                    b.HasOne("Categorias", "Categoria")
-                        .WithMany("Productos")
-                        .HasForeignKey("CategoriasId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Categoria");
-                });
-
-            modelBuilder.Entity("Categorias", b =>
-                {
-                    b.Navigation("Productos");
+                    b.Navigation("Inventario");
                 });
 #pragma warning restore 612, 618
         }
