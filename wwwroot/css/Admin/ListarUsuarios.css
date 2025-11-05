@@ -1,92 +1,240 @@
+/* === Estilos globales === */
+body {
+    background-color: #fcf4e8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    margin: 0;
+}
 
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+/* === Sidebar (igual que en las demás vistas) === */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(180deg, #7A3641 0%, #BB818A 100%);
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 25px 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
 
-        .sidebar {
-            background: #2c3e50;
-            color: white;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
+.sidebar .logo {
+    text-align: center;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-        .sidebar .logo {
-            padding: 0 20px 20px 20px;
-            border-bottom: 1px solid #34495e;
-            margin-bottom: 20px;
-        }
+.sidebar .logo h4 {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 5px;
+}
 
-        .sidebar .nav-link {
-            color: #bdc3c7;
-            padding: 12px 20px;
-            margin: 2px 0;
-            border-radius: 0;
-            transition: all 0.3s;
-        }
+.sidebar .logo small {
+    color: #a0aec0;
+    font-size: 13px;
+}
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: white;
-            background: #34495e;
-        }
+/* === Navegación === */
+.sidebar .nav {
+    margin-top: 20px;
+}
 
-        .sidebar .nav-link.text-danger:hover {
-            background: rgba(231, 76, 60, 0.2);
-        }
+.sidebar .nav-link {
+    color: #bfc9d4;
+    padding: 12px 24px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.25s ease-in-out;
+}
 
-        .main-content {
-            padding: 30px;
-        }
+.sidebar .nav-link i {
+    font-size: 1.2rem;
+    opacity: 0.85;
+}
 
-        .card {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-radius: 10px;
-        }
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #52222a;
+    padding-left: 20px;
+}
 
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            color: #2c3e50;
-            background: #f8f9fa;
-        }
+.sidebar .nav-link.text-danger:hover {
+    background: rgba(231, 76, 60, 0.15);
+    border-left-color: #e74c3c;
+}
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-        }
+/* === Información del usuario (si se muestra en futuras vistas) === */
+.user-info {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px 20px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+}
 
-        .action-buttons .btn {
-            padding: 6px 8px;
-            margin: 0 2px;
-        }
+.user-info p {
+    margin: 0;
+    color: #ced6e0;
+}
 
-        .badge {
-            font-size: 0.75rem;
-            padding: 6px 10px;
-        }
+/* === Contenido principal === */
+.main-content {
+    margin-left: 250px;
+    padding: 40px;
+    background-color: #fcf4e8;
+    min-height: 100vh;
+}
 
-        .btn-action {
-            border: none;
-            background: transparent;
-        }
+/* === Tarjeta principal === */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    background: #fff;
+}
 
-        .btn-view { color: #0d6efd; }
-        .btn-edit { color: #ffc107; }
-        .btn-delete { color: #dc3545; }
+.card-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 20px 25px;
+}
 
-        .btn-view:hover { background: #0d6efd; color: white; }
-        .btn-edit:hover { background: #ffc107; color: black; }
-        .btn-delete:hover { background: #dc3545; color: white; }
+.card-header h4 {
+    font-weight: 600;
+    color: #2c3e50;
+}
 
-        @media (max-width: 768px) {
-            .sidebar {
-                min-height: auto;
-            }
-            .main-content {
-                padding: 15px;
-            }
-        }
-    
+/* === Tabla de usuarios === */
+.table {
+    margin-top: 10px;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.table thead th {
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 14px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+    background: #fff;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+
+.table tbody tr:hover {
+    background: #f1f5f9;
+    transform: scale(1.01);
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 16px;
+}
+
+/* === Avatar de usuario === */
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 2px #007bff33;
+}
+
+/* === Badges de roles === */
+.badge {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+/* === Botones de acción === */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    border: none;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-view {
+    background-color: #0dcaf0;
+    color: white;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    color: white;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* === Modal de eliminación === */
+.modal-content {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-body p {
+    font-size: 15px;
+}
+
+.alert-warning {
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* === Responsive === */
+@media (max-width: 991px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 10px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
