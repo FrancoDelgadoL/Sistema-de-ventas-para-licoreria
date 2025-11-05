@@ -80,7 +80,6 @@ namespace Ezel_Market.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
- 
                 var user = await _userManager.FindByEmailAsync(Input.Email);
 
                 if (user != null)
