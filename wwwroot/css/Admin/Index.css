@@ -1,35 +1,115 @@
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+body {
+    background-color: #fcf4e8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
 
-        .sidebar {
-            background: #2c3e50;
-            color: white;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
+/* === Sidebar === */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(180deg, #7A3641 0%, #BB818A 100%);
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 25px 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
 
-        .sidebar .logo {
-            padding: 0 20px 20px 20px;
-            border-bottom: 1px solid #34495e;
-            margin-bottom: 20px;
-        }
+.sidebar .logo {
+    text-align: center;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-        .sidebar .nav-link {
-            color: #bdc3c7;
-            padding: 12px 20px;
-            margin: 2px 0;
-            border-radius: 0;
-            transition: all 0.3s;
-        }
+.sidebar .logo h3 {
+    font-weight: 600;
+    color: #f2e8dc;
+}
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: white;
-            background: #34495e;
-        }
+.sidebar .logo span {
+    color: #d9cbbd;
+}
 
-        .sidebar .nav-link.text-danger:hover {
-            background: rgba(231, 76, 60, 0.2);
-        }
+.sidebar .logo small {
+    color: #7A3641;
+}
+
+/* === Navegación === */
+.sidebar .nav {
+    margin-top: 20px;
+}
+
+.sidebar .nav-link {
+    color: #bfc9d4;
+    padding: 12px 24px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.25s ease-in-out;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.2rem;
+    opacity: 0.85;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #52222a;
+    padding-left: 20px;
+}
+
+.sidebar .nav-link.text-danger:hover {
+    background: rgba(231, 76, 60, 0.15);
+    border-left-color: #e74c3c;
+}
+
+/* === Info del usuario === */
+.user-info {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px 20px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+}
+
+.user-info p {
+    margin: 0;
+    color: #ced6e0;
+}
+
+.user-info .mb-1 {
+    font-weight: 600;
+}
+
+
+/* Contenido */
+.content {
+    margin-left: 260px;
+    min-height: 100vh;
+    background-color: #fcf4e8;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Tarjetas */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}

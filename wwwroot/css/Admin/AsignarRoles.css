@@ -1,392 +1,198 @@
+/* === Reset básico === */
 body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    padding: 0;
-    display: flex;
+    background-color: #fcf4e8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    overflow-x: hidden;
 }
 
+/* === Sidebar === */
 .sidebar {
-    background: #2c3e50;
-    color: white;
-    min-height: 100vh;
-    padding: 20px 0;
-    width: 280px;
     position: fixed;
     left: 0;
     top: 0;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(180deg, #7A3641 0%, #BB818A 100%);
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 25px 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
 }
 
 .sidebar .logo {
-    padding: 0 20px 20px 20px;
-    border-bottom: 1px solid #34495e;
-    margin-bottom: 20px;
     text-align: center;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar .logo h3 {
-    font-size: 1.5rem;
-    margin-bottom: 5px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.sidebar .logo span {
+    color: #7A3641;
 }
 
 .sidebar .logo small {
-    font-size: 0.8rem;
-    color: #bdc3c7;
+    color: #a0aec0;
+}
+
+/* === Navegación === */
+.sidebar .nav {
+    margin-top: 20px;
 }
 
 .sidebar .nav-link {
-    color: #bdc3c7;
-    padding: 12px 20px;
-    margin: 2px 0;
-    border-radius: 0;
-    transition: all 0.3s;
-    text-decoration: none;
-    display: block;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
+    color: #bfc9d4;
+    padding: 12px 24px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.25s ease-in-out;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.2rem;
+    opacity: 0.85;
 }
 
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
-    color: white;
-    background: #34495e;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #52222a;
+    padding-left: 20px;
 }
 
 .sidebar .nav-link.text-danger:hover {
-    background: rgba(231, 76, 60, 0.2);
+    background: rgba(231, 76, 60, 0.15);
+    border-left-color: #e74c3c;
 }
 
+/* === Info del usuario === */
 .user-info {
-    margin-top: auto;
-    padding: 20px;
-    border-top: 1px solid #34495e;
-    font-size: 0.9rem;
-    color: #bdc3c7;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px 20px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
 }
 
-/* Main Content Styles */
-.main-content {
-    margin-left: 280px;
-    padding: 30px;
-    width: calc(100% - 280px);
-    min-height: 100vh;
+.user-info p {
+    margin: 0;
+    color: #ced6e0;
 }
 
-.section-header {
-    margin-bottom: 30px;
-}
-
-.section-header h3 {
-    color: #2c3e50;
-    font-size: 1.8rem;
+.user-info .mb-1 {
     font-weight: 600;
 }
 
-/* Card Styles */
+/* === Contenido principal (a la derecha del sidebar) === */
+.main-content {
+    margin-left: 250px;
+    padding: 30px;
+    transition: all 0.3s ease-in-out;
+}
+
+.main-content h1 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* === Tarjetas o paneles dentro del dashboard === */
 .card {
     border: none;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card-header {
-    border-radius: 10px 10px 0 0 !important;
-    padding: 15px 20px;
-    font-weight: 600;
-}
-
-/* Table Styles */
-.table-responsive {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.table-users {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table-header-custom {
-    background: linear-gradient(135deg, #42a5f5, #2196f3);
-    color: white;
-}
-
-.table-header-custom th {
-    padding: 15px 12px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 0.9rem;
-    border: none;
-}
-
-.table-users tbody tr {
-    border-bottom: 1px solid #ecf0f1;
-    transition: background-color 0.3s ease;
-}
-
-.table-users tbody tr:hover {
-    background-color: #f8f9fa;
-}
-
-.table-users td {
-    padding: 15px 12px;
-    vertical-align: middle;
-    border: none;
-}
-
-/* User Avatar */
-.user-avatar-container {
-    display: flex;
-    align-items: center;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.user-info strong {
-    display: block;
-    color: #2c3e50;
-    font-weight: 600;
-}
-
-.user-info small {
-    color: #7f8c8d;
-    font-size: 0.8rem;
-}
-
-.user-email {
-    color: #3498db;
-    font-weight: 500;
-}
-
-/* Badge Styles */
-.badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.bg-danger { background-color: #e74c3c !important; }
-.bg-primary { background-color: #3498db !important; }
-.bg-warning { background-color: #f39c12 !important; }
-.bg-success { background-color: #27ae60 !important; }
-.bg-secondary { background-color: #95a5a6 !important; }
-
-/* Action Buttons */
-.action-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-action {
-    border: none;
-    background: transparent;
-    padding: 6px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-}
-
-.btn-view { color: #0d6efd; }
-.btn-edit { color: #ffc107; }
-.btn-delete { color: #dc3545; }
-
-.btn-view:hover { background: #0d6efd; color: white; }
-.btn-edit:hover { background: #ffc107; color: black; }
-.btn-delete:hover { background: #dc3545; color: white; }
-
-/* No Users State */
-.no-users {
-    padding: 60px 20px;
-    color: #7f8c8d;
-    text-align: center;
-}
-
-.no-users .display-4 {
-    font-size: 3rem;
-    margin-bottom: 20px;
-    opacity: 0.5;
-}
-
-/* Form Styles */
-.form-control, .form-select {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px 12px;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: #42a5f5;
-    box-shadow: 0 0 0 0.2rem rgba(66, 165, 245, 0.25);
-}
-
-/* Button Styles */
-.btn {
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    border: none;
-}
-
-.btn-success:hover {
+.card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+
+.card-title {
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* === Botones === */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.25s ease;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    border: none;
+    background-color: #00bcd4;
+    border-color: #00bcd4;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    border: none;
+    background-color: #00acc1;
+    border-color: #00acc1;
 }
 
 .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+    background-color: #c0392b;
 }
 
-/* Alert Styles */
-.alert {
-    border: none;
-    border-radius: 8px;
-    padding: 15px 20px;
+.btn-success:hover {
+    background-color: #27ae60;
 }
 
-.alert-success {
-    background: linear-gradient(135deg, #d4edda, #c3e6cb);
-    color: #155724;
-}
-
-.alert-danger {
-    background: linear-gradient(135deg, #f8d7da, #f1b0b7);
-    color: #721c24;
-}
-
-.alert-info {
-    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
-    color: #0c5460;
-}
-
-/* Modal Styles */
-.modal-content {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-    border-radius: 10px 10px 0 0;
-    padding: 20px;
-}
-
-.modal-footer {
-    border-radius: 0 0 10px 10px;
-    padding: 20px;
-}
-
-/* Animation */
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-    from { 
-        opacity: 0; 
-        transform: translateY(10px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        position: relative;
-        min-height: auto;
-    }
-    
-    .main-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 15px;
-    }
-    
-    .section-header h3 {
-        font-size: 1.5rem;
-    }
-    
-    .card-body {
-        padding: 15px;
-    }
-}
-
-/* Text Colors */
-.text-primary {
-    color: #42a5f5 !important;
-}
-
-.text-danger {
-    color: #e74c3c !important;
-}
-
-.text-muted {
-    color: #7f8c8d !important;
-}
-
-/* Field Validation */
-.field-validation-valid {
-    display: block;
-    margin-top: 5px;
-    font-size: 0.875rem;
-}
-
-/* Custom Scrollbar */
+/* === Scrollbar personalizado === */
 ::-webkit-scrollbar {
     width: 8px;
 }
 
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
 ::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
+    background: #34495e;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: #00bcd4;
+}
+
+/* === Responsive === */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 220px;
+    }
+
+    .main-content {
+        margin-left: 220px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: absolute;
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+/* === Animación suave al mostrar sidebar === */
+.sidebar,
+.main-content {
+    transition: all 0.3s ease-in-out;
 }
