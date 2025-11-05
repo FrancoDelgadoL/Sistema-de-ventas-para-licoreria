@@ -23,20 +23,21 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>@item.NombreProducto</td>
-            <td>@item.Categoria</td>
-            <td>@item.Cantidad</td>
-            <td>@item.PrecioCompra</td>
-            <td>@item.PrecioVenta</td>
-            <td>@item.FechaIngreso.ToShortDateString()</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a> |
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.NombreProducto</td>
+                <td>@item.Categoria?.Nombre</td>
+                <td>@item.Cantidad</td>
+                <td>S/ @item.PrecioCompra.ToString("0.00")</td>
+                <td>S/ @item.PrecioVenta.ToString("0.00")</td>
+                <td>@item.FechaIngreso.ToShortDateString()</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

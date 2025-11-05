@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Ezel_Market.Data;
 using Ezel_Market.Models;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 
 namespace Ezel_Market.Controllers
 {
@@ -18,7 +20,10 @@ namespace Ezel_Market.Controllers
         // GET: Inventario
         public async Task<IActionResult> Index()
         {
-            var lista = await _context.Inventarios.ToListAsync();
+            var lista = await _context.Inventarios
+            .Include(i => i.Categoria)
+            .ToListAsync();
+
             return View(lista);
         }
 
@@ -40,13 +45,14 @@ namespace Ezel_Market.Controllers
         // GET: Inventario/Create
         public IActionResult Create()
         {
+            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre");
             return View();
         }
 
         // POST: Inventario/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NombreProducto,Categoria,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario)
+        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario)
         {
             if (ModelState.IsValid)
             {
