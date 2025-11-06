@@ -7,15 +7,15 @@ publish/
 *.exe
 *.dll
 *.log
-*.db
+# *.db
 *.pdb
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3bin/
+# *.db
+# *.db-shm
+# *.db-wal
+# *.sqlite
+# *.sqlite3bin/
 obj/
-*.db
+# *.db
 *.dll
 *.exe
 *.pdb
