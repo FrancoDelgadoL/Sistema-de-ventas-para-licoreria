@@ -13,6 +13,7 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
+            <th>Imagen</th>
             <th>Nombre</th>
             <th>Categoría</th>
             <th>Cantidad</th>
@@ -26,6 +27,16 @@
         @foreach (var item in Model)
         {
             <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.Imagen))
+                    {
+                        <img src="@Url.Content(item.Imagen)" alt="Imagen del producto" width="70" height="70" style="object-fit: cover; border-radius: 10px;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin imagen</span>
+                    }
+                </td>
                 <td>@item.NombreProducto</td>
                 <td>@item.Categoria?.Nombre</td>
                 <td>@item.Cantidad</td>

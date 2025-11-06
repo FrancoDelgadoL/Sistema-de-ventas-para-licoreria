@@ -6,7 +6,8 @@
 
 <h1>Editar producto</h1>
 
-<form asp-action="Edit" method="post">
+<!-- 🔽 IMPORTANTE: agregar enctype para subir archivos -->
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
     <input type="hidden" asp-for="Id" />
 
     <div class="form-group">
@@ -16,7 +17,7 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="CategoriasId"></label>
+        <label asp-for="CategoriasId">Categoría</label>
         <select asp-for="CategoriasId" class="form-control" asp-items="ViewBag.Categorias"></select>
         <span asp-validation-for="CategoriasId" class="text-danger"></span>
     </div>
@@ -51,8 +52,24 @@
         <span asp-validation-for="FechaIngreso" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary mt-2">Guardar cambios</button>
-    <a asp-action="Index" class="btn btn-secondary mt-2">Cancelar</a>
+    <!-- 🔽 Mostrar imagen actual (si existe) -->
+    @if (!string.IsNullOrEmpty(Model.Imagen))
+    {
+        <div class="form-group mt-3">
+            <label>Imagen actual:</label>
+            <br />
+            <img src="@Model.Imagen" alt="Imagen del producto" width="180" class="border rounded" />
+        </div>
+    }
+
+    <!-- 🔽 Campo para subir nueva imagen -->
+    <div class="form-group mt-3">
+        <label for="ImagenArchivo">Cambiar imagen (opcional):</label>
+        <input type="file" name="ImagenArchivo" class="form-control" accept="image/*" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Cancelar</a>
 </form>
 
 @section Scripts {
