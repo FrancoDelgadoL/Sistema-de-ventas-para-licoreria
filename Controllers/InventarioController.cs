@@ -4,16 +4,22 @@ using Ezel_Market.Data;
 using Ezel_Market.Models;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Linq;
 
 namespace Ezel_Market.Controllers
 {
     public class InventarioController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public InventarioController(ApplicationDbContext context)
+        public InventarioController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Inventario
@@ -33,6 +39,7 @@ namespace Ezel_Market.Controllers
                 return NotFound();
 
             var inventario = await _context.Inventarios
+                .Include(i => i.Categoria)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (inventario == null)
@@ -48,17 +55,43 @@ namespace Ezel_Market.Controllers
             return View();
         }
 
-        // POST: Inventario/Create
+        // POST: Inventario/Create (con imagen)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario)
+        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo)
         {
             if (ModelState.IsValid)
             {
+                // Carpeta donde se guardarán las imágenes
+                string carpetaImagenes = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes");
+
+                // Si no existe, se crea
+                if (!Directory.Exists(carpetaImagenes))
+                {
+                    Directory.CreateDirectory(carpetaImagenes);
+                }
+
+                // Si el usuario subió una imagen
+                if (ImagenArchivo != null && ImagenArchivo.Length > 0)
+                {
+                    string nombreArchivo = Path.GetFileName(ImagenArchivo.FileName);
+                    string rutaArchivo = Path.Combine(carpetaImagenes, nombreArchivo);
+
+                    using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                    {
+                        await ImagenArchivo.CopyToAsync(stream);
+                    }
+
+                    // Guardar nombre del archivo en el modelo (asegúrate que exista la propiedad Imagen en el modelo)
+                    inventario.Imagen = "/imagenes/" + nombreArchivo;
+                }
+
                 _context.Add(inventario);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
             return View(inventario);
         }
 
@@ -76,10 +109,10 @@ namespace Ezel_Market.Controllers
             return View(inventario);
         }
 
-        // ✅ POST: Inventario/Edit/5 (CORREGIDO)
+        // POST: Inventario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo)
         {
             if (id != inventario.Id)
                 return NotFound();
@@ -98,6 +131,26 @@ namespace Ezel_Market.Controllers
                     existingInventario.PrecioCompra = inventario.PrecioCompra;
                     existingInventario.PrecioVenta = inventario.PrecioVenta;
                     existingInventario.FechaIngreso = inventario.FechaIngreso;
+
+                    // Si se sube una nueva imagen, reemplazar la anterior
+                    if (ImagenArchivo != null && ImagenArchivo.Length > 0)
+                    {
+                        string carpetaImagenes = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes");
+                        if (!Directory.Exists(carpetaImagenes))
+                        {
+                            Directory.CreateDirectory(carpetaImagenes);
+                        }
+
+                        string nombreArchivo = Path.GetFileName(ImagenArchivo.FileName);
+                        string rutaArchivo = Path.Combine(carpetaImagenes, nombreArchivo);
+
+                        using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                        {
+                            await ImagenArchivo.CopyToAsync(stream);
+                        }
+
+                        existingInventario.Imagen = "/imagenes/" + nombreArchivo;
+                    }
 
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -119,6 +172,7 @@ namespace Ezel_Market.Controllers
                 return NotFound();
 
             var inventario = await _context.Inventarios
+                .Include(i => i.Categoria)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (inventario == null)

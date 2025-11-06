@@ -6,7 +6,8 @@
 
 <h1>Agregar nuevo producto al Inventario</h1>
 
-<form asp-action="Create" method="post">
+<!-- ✅ Agregamos enctype para aceptar archivos -->
+<form asp-action="Create" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label asp-for="NombreProducto"></label>
         <input asp-for="NombreProducto" class="form-control" />
@@ -18,7 +19,6 @@
         <select asp-for="CategoriasId" asp-items="ViewBag.Categorias" class="form-control"></select>
         <span asp-validation-for="CategoriasId" class="text-danger"></span>
     </div>
-
 
     <div class="form-group">
         <label asp-for="Cantidad"></label>
@@ -42,6 +42,12 @@
             <input asp-for="PrecioVenta" class="form-control" />
         </div>
         <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+    </div>
+
+    <!-- 🔽 Campo nuevo para subir imagen -->
+    <div class="form-group">
+        <label for="Imagen">Imagen del producto</label>
+        <input type="file" name="ImagenArchivo" class="form-control" accept="image/*" />
     </div>
 
     <button type="submit" class="btn btn-success mt-2">Guardar</button>
