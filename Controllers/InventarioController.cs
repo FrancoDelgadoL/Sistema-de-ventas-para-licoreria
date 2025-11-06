@@ -5,7 +5,6 @@ using Ezel_Market.Models;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-
 namespace Ezel_Market.Controllers
 {
     public class InventarioController : Controller
@@ -21,8 +20,8 @@ namespace Ezel_Market.Controllers
         public async Task<IActionResult> Index()
         {
             var lista = await _context.Inventarios
-            .Include(i => i.Categoria)
-            .ToListAsync();
+                .Include(i => i.Categoria)
+                .ToListAsync();
 
             return View(lista);
         }
@@ -73,13 +72,14 @@ namespace Ezel_Market.Controllers
             if (inventario == null)
                 return NotFound();
 
+            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
             return View(inventario);
         }
 
-        // POST: Inventario/Edit/5
+        // ✅ POST: Inventario/Edit/5 (CORREGIDO)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,Categoria,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario)
         {
             if (id != inventario.Id)
                 return NotFound();
@@ -88,18 +88,27 @@ namespace Ezel_Market.Controllers
             {
                 try
                 {
-                    _context.Update(inventario);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!InventarioExists(inventario.Id))
+                    var existingInventario = await _context.Inventarios.FindAsync(id);
+                    if (existingInventario == null)
                         return NotFound();
-                    else
-                        throw;
+
+                    existingInventario.NombreProducto = inventario.NombreProducto;
+                    existingInventario.CategoriasId = inventario.CategoriasId;
+                    existingInventario.Cantidad = inventario.Cantidad;
+                    existingInventario.PrecioCompra = inventario.PrecioCompra;
+                    existingInventario.PrecioVenta = inventario.PrecioVenta;
+                    existingInventario.FechaIngreso = inventario.FechaIngreso;
+
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction(nameof(Index));
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError("", "Error al guardar cambios: " + (ex.InnerException?.Message ?? ex.Message));
+                }
             }
+
+            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
             return View(inventario);
         }
 
