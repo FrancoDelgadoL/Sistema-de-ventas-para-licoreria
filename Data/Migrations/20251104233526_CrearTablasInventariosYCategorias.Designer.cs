@@ -120,7 +120,10 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<decimal>("PrecioCompra")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<decimal>("PrecioVenta")
+                    b.Property<decimal>("PrecioVentaMinorista")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("PrecioVentaMayorista")
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
