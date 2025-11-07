@@ -16,6 +16,8 @@ namespace Ezel_Market.Data
         public DbSet<Inventario> Inventario { get; set; }
         public DbSet<Categorias> Categoria { get; set; }
 
+        public DbSet<Cupon> Cupones { get; set; }
+
         // INVENTARIO
         public DbSet<Inventario> Inventarios { get; set; }
 
@@ -67,6 +69,17 @@ namespace Ezel_Market.Data
                 new Categorias { Id = 7, Nombre = "Vodka y Gin", Descripcion = "Destilados blancos y ginebras" },
                 new Categorias { Id = 8, Nombre = "Complementos", Descripcion = "Mezcladores, gaseosas y otros" }
             );
+
+            //Reglas de los cupones
+            builder.Entity<Cupon>(entity =>
+            {
+                entity.HasIndex(c => c.Codigo).IsUnique();
+                entity.Property(c => c.Codigo).IsRequired().HasMaxLength(20);
+                entity.Property(c => c.Descripcion).IsRequired().HasMaxLength(100);
+                entity.Property(c => c.ValorDescuento).HasColumnType("decimal(18,2)");
+                entity.Property(c => c.PorcentajeDescuento).HasColumnType("decimal(5,2)");
+                entity.Property(c => c.MontoMinimoCompra).HasColumnType("decimal(18,2)");
+            });
         }
     }
 }

@@ -31,11 +31,34 @@ namespace Ezel_Market.Controllers
             _roleManager = roleManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                var usuario = await _userManager.GetUserAsync(User);
+                if (usuario != null)
+                {
+                    ViewBag.NombreUsuario = $"{usuario.Nombre} {usuario.Apellido}";
+                    ViewBag.Nombre = usuario.Nombre;
+                    ViewBag.Apellido = usuario.Apellido;
+                    ViewBag.Email = usuario.Email;
+                }
+                else
+                {
+                    // DEBUG: Si el usuario es null
+                    ViewBag.DebugInfo = "Usuario no encontrado en la base de datos";
+                }
+            }
+            else
+            {
+                // DEBUG: Si no está autenticado
+                ViewBag.DebugInfo = "Usuario no autenticado";
+            }
+
             return View();
         }
 
+        // [MANTENER TODOS TUS OTROS MÉTODOS EXISTENTES AQUÍ...]
         public async Task<IActionResult> ListarUsuarios()
         {
             var usuariosConRoles = new List<UsuarioConRol>();
@@ -326,6 +349,7 @@ namespace Ezel_Market.Controllers
                 }
             }
         }
+
         // ⚙️ MÉTODO TEMPORAL para asignar rol Administrador
         [AllowAnonymous]
         [HttpGet("Admin/AsignarAdmin")]
@@ -367,5 +391,247 @@ namespace Ezel_Market.Controllers
             }
         }
 
+        //Controller para cupones
+        // GET: ListarCupones - Vista única con todo
+        public async Task<IActionResult> ListarCupones()
+        {
+            var cupones = await _context.Cupones.ToListAsync();
+            return View("Cupones", cupones);
+        }
+
+        // POST: CrearCupon - Desde el modal
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearCupon(Cupon cupon)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    // Verificar si el código ya existe
+                    if (await _context.Cupones.AnyAsync(c => c.Codigo == cupon.Codigo))
+                    {
+                        TempData["Error"] = "Este código de cupón ya existe";
+                        return RedirectToAction(nameof(ListarCupones));
+                    }
+
+                    // Validar fechas
+                    if (cupon.FechaInicio >= cupon.FechaExpiracion)
+                    {
+                        TempData["Error"] = "La fecha de inicio debe ser anterior a la fecha de expiración";
+                        return RedirectToAction(nameof(ListarCupones));
+                    }
+
+                    // Validar tipo de descuento
+                    if (cupon.TipoDescuento == TipoDescuento.Porcentaje)
+                    {
+                        if (!cupon.PorcentajeDescuento.HasValue || cupon.PorcentajeDescuento <= 0)
+                        {
+                            TempData["Error"] = "El porcentaje de descuento es requerido";
+                            return RedirectToAction(nameof(ListarCupones));
+                        }
+                        cupon.ValorDescuento = 0; // Limpiar valor si es porcentaje
+                    }
+                    else
+                    {
+                        if (cupon.ValorDescuento <= 0)
+                        {
+                            TempData["Error"] = "El valor de descuento es requerido";
+                            return RedirectToAction(nameof(ListarCupones));
+                        }
+                        cupon.PorcentajeDescuento = null; // Limpiar porcentaje si es monto fijo
+                    }
+
+                    // Inicializar usos actuales
+                    cupon.UsosActuales = 0;
+
+                    _context.Add(cupon);
+                    await _context.SaveChangesAsync();
+                    
+                    TempData["Success"] = $"Cupón '{cupon.Codigo}' creado exitosamente";
+                    _logger.LogInformation($"Cupón {cupon.Codigo} creado por {User.Identity.Name}");
+                }
+                else
+                {
+                    var errors = string.Join("; ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+                    TempData["Error"] = $"Error en los datos: {errors}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear cupón");
+                TempData["Error"] = "Ocurrió un error al crear el cupón";
+            }
+
+            return RedirectToAction(nameof(ListarCupones));
+        }
+
+        // POST: EditarCupon - Desde el modal (VERSIÓN CORREGIDA)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarCupon(Cupon cupon)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = string.Join("; ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+                    TempData["Error"] = $"Error en los datos: {errors}";
+                    return RedirectToAction(nameof(ListarCupones));
+                }
+
+                // Verificar si existe otro cupón con el mismo código
+                if (await _context.Cupones.AnyAsync(c => c.Codigo == cupon.Codigo && c.Id != cupon.Id))
+                {
+                    TempData["Error"] = "Este código de cupón ya existe en otro cupón";
+                    return RedirectToAction(nameof(ListarCupones));
+                }
+
+                // Validar fechas
+                if (cupon.FechaInicio >= cupon.FechaExpiracion)
+                {
+                    TempData["Error"] = "La fecha de inicio debe ser anterior a la fecha de expiración";
+                    return RedirectToAction(nameof(ListarCupones));
+                }
+
+                // 🔥 CORRECCIÓN PRINCIPAL: Cargar el cupón existente y actualizar propiedades individualmente
+                var cuponExistente = await _context.Cupones.FindAsync(cupon.Id);
+                if (cuponExistente == null)
+                {
+                    TempData["Error"] = "El cupón no existe";
+                    return RedirectToAction(nameof(ListarCupones));
+                }
+
+                // 🔥 ACTUALIZAR PROPIEDADES UNA POR UNA (evita problemas de tracking)
+                cuponExistente.Codigo = cupon.Codigo;
+                cuponExistente.Descripcion = cupon.Descripcion;
+                cuponExistente.TipoDescuento = cupon.TipoDescuento;
+                
+                // Manejar campos de descuento según el tipo
+                if (cupon.TipoDescuento == TipoDescuento.MontoFijo)
+                {
+                    cuponExistente.ValorDescuento = cupon.ValorDescuento;
+                    cuponExistente.PorcentajeDescuento = null;
+                }
+                else
+                {
+                    cuponExistente.PorcentajeDescuento = cupon.PorcentajeDescuento;
+                    cuponExistente.ValorDescuento = 0;
+                }
+                
+                cuponExistente.FechaInicio = cupon.FechaInicio;
+                cuponExistente.FechaExpiracion = cupon.FechaExpiracion;
+                cuponExistente.UsosMaximos = cupon.UsosMaximos;
+                cuponExistente.MontoMinimoCompra = cupon.MontoMinimoCompra;
+                cuponExistente.Activo = cupon.Activo;
+                cuponExistente.SoloPrimeraCompra = cupon.SoloPrimeraCompra;
+
+                // No actualizar UsosActuales - mantener el valor existente
+
+                await _context.SaveChangesAsync();
+                
+                TempData["Success"] = $"Cupón '{cupon.Codigo}' actualizado exitosamente";
+                _logger.LogInformation($"Cupón {cupon.Codigo} actualizado por {User.Identity.Name}");
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CuponExists(cupon.Id))
+                {
+                    TempData["Error"] = "El cupón no existe";
+                }
+                else
+                {
+                    TempData["Error"] = "Error de concurrencia al actualizar el cupón";
+                    _logger.LogError("Error de concurrencia al actualizar cupón {CuponId}", cupon.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar cupón");
+                TempData["Error"] = "Ocurrió un error al actualizar el cupón";
+            }
+
+            return RedirectToAction(nameof(ListarCupones));
+        }
+
+        // POST: EliminarCupon
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarCupon(int id)
+        {
+            try
+            {
+                var cupon = await _context.Cupones.FindAsync(id);
+                if (cupon == null)
+                {
+                    TempData["Error"] = "Cupón no encontrado";
+                    return RedirectToAction(nameof(ListarCupones));
+                }
+
+                var codigoCupon = cupon.Codigo;
+                _context.Cupones.Remove(cupon);
+                await _context.SaveChangesAsync();
+                
+                TempData["Success"] = $"Cupón '{codigoCupon}' eliminado exitosamente";
+                _logger.LogInformation($"Cupón {codigoCupon} eliminado por {User.Identity.Name}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar cupón");
+                TempData["Error"] = "Ocurrió un error al eliminar el cupón";
+            }
+
+            return RedirectToAction(nameof(ListarCupones));
+        }
+
+        // API para validar cupón (opcional - para futuras ventas)
+        [HttpGet]
+        public async Task<JsonResult> ValidarCupon(string codigo, decimal subtotal, string usuarioId = null)
+        {
+            try
+            {
+                var cupon = await _context.Cupones
+                    .FirstOrDefaultAsync(c => c.Codigo == codigo);
+
+                if (cupon == null)
+                    return Json(new { valido = false, mensaje = "Cupón no encontrado" });
+
+                if (!cupon.EsValido)
+                    return Json(new { valido = false, mensaje = "Cupón no válido o expirado" });
+
+                if (subtotal < cupon.MontoMinimoCompra)
+                    return Json(new { valido = false, mensaje = $"Monto mínimo requerido: {cupon.MontoMinimoCompra:C}" });
+
+                if (cupon.UsosActuales >= cupon.UsosMaximos)
+                    return Json(new { valido = false, mensaje = "Cupón ya fue utilizado el máximo de veces" });
+
+                var descuento = cupon.CalcularDescuento(subtotal);
+
+                return Json(new { 
+                    valido = true, 
+                    mensaje = "Cupón aplicado correctamente",
+                    descuento = descuento,
+                    tipoDescuento = cupon.TipoDescuento.ToString(),
+                    cupon = new {
+                        codigo = cupon.Codigo,
+                        descripcion = cupon.Descripcion
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al validar cupón");
+                return Json(new { valido = false, mensaje = "Error al validar el cupón" });
+            }
+        }
+
+        private bool CuponExists(int id)
+        {
+            return _context.Cupones.Any(e => e.Id == id);
+        }
     }
 }
