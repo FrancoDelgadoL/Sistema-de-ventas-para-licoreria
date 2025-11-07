@@ -25,8 +25,9 @@
             <a class="nav-link" href="/Admin/ListarUsuarios"><i class="bi bi-people me-2"></i>Usuarios</a>
             <a class="nav-link active" href="/Admin/AsignarRoles"><i class="bi bi-person-gear me-2"></i>Asignar
                 Roles</a>
+            <a class="nav-link" href="/Admin/ListarCupones"><i class="bi bi-ticket-perforated me-2"></i>Cupones</a>
             <a class="nav-link" href="/Admin/Perfil"><i class="bi bi-person me-2"></i>Perfil</a>
-            <a class="nav-link" href="/Inventario/Index"><i class="bi bi-person me-2"></i>Gestion de Inventario</a>
+            <a class="nav-link" href="/Inventario/Index"><i class="bi bi-box-seam me-2"></i>Gestión de Inventario</a>
             <button type="button" class="nav-link text-danger w-100 text-start bg-transparent border-0"
                 data-bs-toggle="modal" data-bs-target="#logoutModal">
                 <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
@@ -50,55 +51,55 @@
             <!-- Mensajes -->
             @if (TempData["Success"] != null)
             {
-                <div class="alert alert-success alert-dismissible fade show shadow-sm">
+                <div class="alert alert-success alert-dismissible fade show">
                     <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             }
             @if (TempData["Error"] != null)
             {
-                <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+                <div class="alert alert-danger alert-dismissible fade show">
                     <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             }
 
             <!-- FORMULARIO NUEVO USUARIO -->
-            <div class="card shadow-sm mb-4 border-0">
-                <div class="card-header bg-gradient bg-success text-white fw-semibold">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-gradient text-white fw-semibold">
                     <i class="bi bi-person-plus me-2"></i>Agregar Nuevo Usuario
                 </div>
                 <div class="card-body">
-                    <form id="formAgregarUsuario" method="post">
+                    <form id="formAgregarUsuario" method="post" class="user-form">
                         @Html.AntiForgeryToken()
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Nombre</label>
                                 <input type="text" name="Nombre" class="form-control" required>
                                 <span class="text-danger field-validation-valid" data-valmsg-for="Nombre"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Apellido</label>
                                 <input type="text" name="Apellido" class="form-control" required>
                                 <span class="text-danger field-validation-valid" data-valmsg-for="Apellido"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Email</label>
                                 <input type="email" name="Email" class="form-control" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Usuario</label>
                                 <input type="text" name="UserName" class="form-control" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Contraseña</label>
                                 <input type="password" name="Password" class="form-control" required minlength="6">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Confirmar Contraseña</label>
                                 <input type="password" name="ConfirmPassword" class="form-control" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 form-group">
                                 <label class="form-label fw-semibold">Rol</label>
                                 <select name="RolSeleccionado" class="form-select" required>
                                     <option value="">Seleccionar rol...</option>
@@ -109,7 +110,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-end">
-                                <button type="button" class="btn btn-success w-100 shadow-sm" id="btnConfirmarAgregar">
+                                <button type="button" class="btn btn-success w-100 shadow-sm submit-btn" id="btnConfirmarAgregar">
                                     <i class="bi bi-person-plus me-1"></i> Crear Usuario
                                 </button>
                             </div>
@@ -119,14 +120,14 @@
             </div>
 
             <!-- TABLA DE USUARIOS -->
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white fw-semibold">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient text-white fw-semibold">
                     <i class="bi bi-people me-2"></i>Usuarios Existentes - Asignar Roles
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table align-middle table-hover">
-                            <thead class="bg-gradient bg-primary text-white">
+                            <thead>
                                 <tr>
                                     <th>Usuario</th>
                                     <th>Nombre Completo</th>
@@ -153,11 +154,11 @@
                                             <td class="text-primary fw-semibold">@usuario.Email</td>
                                             <td>
                                                 <span class="badge 
-                                                            @(usuario.Rol == "Administrador" ? "bg-danger" :
-                                                                                                            usuario.Rol == "Gerente" ? "bg-warning" :
-                                                                                                            usuario.Rol == "Inventario" ? "bg-success" :
-                                                                                                            usuario.Rol == "Cliente" ? "bg-primary" :
-                                                                                                            "bg-secondary")">
+                                                    @(usuario.Rol == "Administrador" ? "bg-danger" :
+                                                      usuario.Rol == "Gerente" ? "bg-warning" :
+                                                      usuario.Rol == "Inventario" ? "bg-success" :
+                                                      usuario.Rol == "Cliente" ? "bg-primary" :
+                                                      "bg-secondary")">
                                                     @usuario.Rol
                                                 </span>
                                             </td>

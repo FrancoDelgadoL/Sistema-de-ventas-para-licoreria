@@ -1,0 +1,471 @@
+@model IEnumerable<Cupon>
+
+@{
+    ViewData["Title"] = "Gestión de Cupones";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Estilos personalizados -->
+    <link href="~/css/Admin/Cupones.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="sidebar shadow-sm col-md-3 col-lg-2 p-0">
+                <div class="logo text-center p-3">
+                    <h3 class="mb-1 fw-bold">
+                        <i class="bi bi-shop me-2 text-primary"></i>EZEL <span class="text-primary">Market</span>
+                    </h3>
+                    <small class="text-light opacity-75">Panel de Administración</small>
+                </div>
+
+                <nav class="nav flex-column mt-4 px-3">
+                    <a class="nav-link" href="/Admin/Index">
+                        <i class="bi bi-house-door me-2"></i>Inicio
+                    </a>
+                    <a class="nav-link" href="/Admin/ListarUsuarios">
+                        <i class="bi bi-people me-2"></i>Usuarios
+                    </a>
+                    <a class="nav-link" href="/Admin/AsignarRoles">
+                        <i class="bi bi-person-gear me-2"></i>Asignar Roles
+                    </a>
+                    <a class="nav-link active" href="/Admin/ListarCupones">
+                        <i class="bi bi-ticket-perforated me-2"></i>Cupones
+                    </a>
+                    <a class="nav-link" href="/Inventario/Index">
+                        <i class="bi bi-box me-2"></i>Gestión de Inventario
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Contenido principal -->
+            <div class="content flex-grow-1 col-md-9 col-lg-10 p-0">
+                <header class="content-header d-flex justify-content-between align-items-center p-3 shadow-sm bg-white">
+                    <h4 class="mb-0"><i class="bi bi-ticket-perforated me-2 text-primary"></i> Gestión de Cupones</h4>
+                </header>
+
+                <main class="p-4">
+                    <!-- Botón para abrir modal de crear -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Cupones de Descuento</h2>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearCuponModal">
+                            <i class="bi bi-plus-circle me-2"></i>Crear Nuevo Cupón
+                        </button>
+                    </div>
+
+                    <!-- Mensajes de éxito/error -->
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Tabla de cupones -->
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            @if (!Model.Any())
+                            {
+                                <div class="text-center py-4">
+                                    <i class="bi bi-ticket-perforated display-1 text-muted"></i>
+                                    <h4 class="text-muted mt-3">No hay cupones registrados</h4>
+                                    <p class="text-muted">Crea tu primer cupón haciendo clic en el botón "Crear Nuevo Cupón"</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Descripción</th>
+                                                <th>Tipo</th>
+                                                <th>Descuento</th>
+                                                <th>Válido Hasta</th>
+                                                <th>Usos</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td><strong class="text-primary">@item.Codigo</strong></td>
+                                                    <td>@item.Descripcion</td>
+                                                    <td>
+                                                        <span class="badge bg-info">@item.TipoDescuento</span>
+                                                    </td>
+                                                    <td>
+                                                        @if (item.TipoDescuento == TipoDescuento.Porcentaje)
+                                                        {
+                                                            <span class="fw-bold text-success">@($"{item.PorcentajeDescuento}%")</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="fw-bold text-success">S/ @item.ValorDescuento.ToString("F2")</span>
+                                                        }
+                                                    </td>
+                                                    <td>@item.FechaExpiracion.ToString("dd/MM/yyyy")</td>
+                                                    <td>
+                                                        <small>@item.UsosActuales / @item.UsosMaximos</small>
+                                                        <div class="progress" style="height: 5px;">
+                                                            @{
+                                                                var porcentajeUso = (double)item.UsosActuales / item.UsosMaximos * 100;
+                                                            }
+                                                            <div class="progress-bar @(porcentajeUso >= 80 ? "bg-warning" : "bg-success")" 
+                                                                 style="width: @porcentajeUso%"></div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge 
+                                                            @(item.Estado == "Activo" ? "bg-success" : 
+                                                            item.Estado == "Programado" ? "bg-info" :
+                                                            item.Estado == "Expirado" ? "bg-warning" : "bg-danger")">
+                                                            @item.Estado
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <!-- Botón Editar -->
+                                                            <button type="button" class="btn btn-warning" 
+                                                                    data-bs-toggle="modal" data-bs-target="#editarCuponModal"
+                                                                    data-cupon-id="@item.Id"
+                                                                    data-cupon-codigo="@item.Codigo"
+                                                                    data-cupon-descripcion="@item.Descripcion"
+                                                                    data-cupon-tipodescuento="@item.TipoDescuento"
+                                                                    data-cupon-valordescuento="@item.ValorDescuento"
+                                                                    data-cupon-porcentajedescuento="@item.PorcentajeDescuento"
+                                                                    data-cupon-fechainicio="@item.FechaInicio.ToString("yyyy-MM-ddTHH:mm")"
+                                                                    data-cupon-fechaexpiracion="@item.FechaExpiracion.ToString("yyyy-MM-ddTHH:mm")"
+                                                                    data-cupon-usosmaximos="@item.UsosMaximos"
+                                                                    data-cupon-montominimo="@item.MontoMinimoCompra"
+                                                                    data-cupon-soloprimeracompra="@item.SoloPrimeraCompra">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
+                                                            
+                                                            <!-- Botón Eliminar -->
+                                                            <form asp-action="EliminarCupon" method="post" class="d-inline">
+                                                                <input type="hidden" name="id" value="@item.Id" />
+                                                                <button type="submit" class="btn btn-danger" 
+                                                                        onclick="return confirm('¿Estás seguro de eliminar el cupón @item.Codigo?')">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Cupón -->
+    <div class="modal fade" id="crearCuponModal" tabindex="-1" aria-labelledby="crearCuponModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="crearCuponModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i>Crear Nuevo Cupón
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="CrearCupon" method="post" id="crearCuponForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Codigo" class="form-label">Código del Cupón *</label>
+                                    <input type="text" class="form-control" id="Codigo" name="Codigo" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="Descripcion" class="form-label">Descripción *</label>
+                                    <input type="text" class="form-control" id="Descripcion" name="Descripcion" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="TipoDescuento" class="form-label">Tipo de Descuento *</label>
+                                    <select class="form-control" id="TipoDescuento" name="TipoDescuento" required>
+                                        <option value="@TipoDescuento.MontoFijo">Monto Fijo</option>
+                                        <option value="@TipoDescuento.Porcentaje">Porcentaje</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="divMontoFijo">
+                                    <label for="ValorDescuento" class="form-label">Valor de Descuento *</label>
+                                    <input type="number" class="form-control" id="ValorDescuento" name="ValorDescuento" step="0.01" min="0.01" required>
+                                </div>
+
+                                <div class="mb-3" id="divPorcentaje" style="display: none;">
+                                    <label for="PorcentajeDescuento" class="form-label">Porcentaje de Descuento *</label>
+                                    <input type="number" class="form-control" id="PorcentajeDescuento" name="PorcentajeDescuento" step="0.01" min="1" max="100" disabled>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="FechaInicio" class="form-label">Fecha de Inicio *</label>
+                                    <input type="datetime-local" class="form-control" id="FechaInicio" name="FechaInicio" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="FechaExpiracion" class="form-label">Fecha de Expiración *</label>
+                                    <input type="datetime-local" class="form-control" id="FechaExpiracion" name="FechaExpiracion" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="UsosMaximos" class="form-label">Usos Máximos *</label>
+                                    <input type="number" class="form-control" id="UsosMaximos" name="UsosMaximos" min="1" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="MontoMinimoCompra" class="form-label">Monto Mínimo de Compra</label>
+                                    <input type="number" class="form-control" id="MontoMinimoCompra" name="MontoMinimoCompra" step="0.01" min="0" value="0">
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="hidden" name="SoloPrimeraCompra" value="false">
+                                    <input type="checkbox" class="form-check-input" id="SoloPrimeraCompra" name="SoloPrimeraCompra" value="true">
+                                    <label class="form-check-label" for="SoloPrimeraCompra">Solo para Primera Compra</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Crear Cupón</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Cupón -->
+    <div class="modal fade" id="editarCuponModal" tabindex="-1" aria-labelledby="editarCuponModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title" id="editarCuponModalLabel">
+                        <i class="bi bi-pencil me-2"></i>Editar Cupón
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarCupon" method="post" id="editarCuponForm">
+                    <input type="hidden" id="editarCuponId" name="Id">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editarCodigo" class="form-label">Código del Cupón *</label>
+                                    <input type="text" class="form-control" id="editarCodigo" name="Codigo" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="editarDescripcion" class="form-label">Descripción *</label>
+                                    <input type="text" class="form-control" id="editarDescripcion" name="Descripcion" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="editarTipoDescuento" class="form-label">Tipo de Descuento *</label>
+                                    <select class="form-control" id="editarTipoDescuento" name="TipoDescuento" required>
+                                        <option value="@TipoDescuento.MontoFijo">Monto Fijo</option>
+                                        <option value="@TipoDescuento.Porcentaje">Porcentaje</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="editarDivMontoFijo">
+                                    <label for="editarValorDescuento" class="form-label">Valor de Descuento *</label>
+                                    <input type="number" class="form-control" id="editarValorDescuento" name="ValorDescuento" step="0.01" min="0.01">
+                                </div>
+
+                                <div class="mb-3" id="editarDivPorcentaje" style="display: none;">
+                                    <label for="editarPorcentajeDescuento" class="form-label">Porcentaje de Descuento *</label>
+                                    <input type="number" class="form-control" id="editarPorcentajeDescuento" name="PorcentajeDescuento" step="0.01" min="1" max="100" disabled>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editarFechaInicio" class="form-label">Fecha de Inicio *</label>
+                                    <input type="datetime-local" class="form-control" id="editarFechaInicio" name="FechaInicio" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="editarFechaExpiracion" class="form-label">Fecha de Expiración *</label>
+                                    <input type="datetime-local" class="form-control" id="editarFechaExpiracion" name="FechaExpiracion" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="editarUsosMaximos" class="form-label">Usos Máximos *</label>
+                                    <input type="number" class="form-control" id="editarUsosMaximos" name="UsosMaximos" min="1" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="editarMontoMinimoCompra" class="form-label">Monto Mínimo de Compra</label>
+                                    <input type="number" class="form-control" id="editarMontoMinimoCompra" name="MontoMinimoCompra" step="0.01" min="0" value="0">
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="hidden" name="SoloPrimeraCompra" value="false">
+                                    <input type="checkbox" class="form-check-input" id="editarSoloPrimeraCompra" name="SoloPrimeraCompra" value="true">
+                                    <label class="form-check-label" for="editarSoloPrimeraCompra">Solo para Primera Compra</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Cupón</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    @section Scripts {
+        <script>
+            // Funcionalidad para mostrar/ocultar campos según tipo de descuento
+            function configurarTipoDescuento(selectId, divMontoId, divPorcentajeId, inputMontoId, inputPorcentajeId) {
+                const select = document.getElementById(selectId);
+                const divMonto = document.getElementById(divMontoId);
+                const divPorcentaje = document.getElementById(divPorcentajeId);
+                const inputMonto = document.getElementById(inputMontoId);
+                const inputPorcentaje = document.getElementById(inputPorcentajeId);
+
+                function actualizarCampos() {
+                    const tipo = select.value;
+                    
+                    if (tipo === '@TipoDescuento.MontoFijo') {
+                        divMonto.style.display = 'block';
+                        divPorcentaje.style.display = 'none';
+                        inputMonto.disabled = false;
+                        inputMonto.required = true;
+                        inputPorcentaje.disabled = true;
+                        inputPorcentaje.required = false;
+                        inputPorcentaje.value = '';
+                    } else {
+                        divMonto.style.display = 'none';
+                        divPorcentaje.style.display = 'block';
+                        inputMonto.disabled = true;
+                        inputMonto.required = false;
+                        inputMonto.value = '';
+                        inputPorcentaje.disabled = false;
+                        inputPorcentaje.required = true;
+                    }
+                }
+
+                select.addEventListener('change', actualizarCampos);
+                actualizarCampos(); // Ejecutar al cargar
+            }
+
+            // Configurar ambos modales al cargar la página
+            document.addEventListener('DOMContentLoaded', function() {
+                // Configurar modal de crear
+                configurarTipoDescuento('TipoDescuento', 'divMontoFijo', 'divPorcentaje', 'ValorDescuento', 'PorcentajeDescuento');
+                
+                // Configurar modal de editar
+                configurarTipoDescuento('editarTipoDescuento', 'editarDivMontoFijo', 'editarDivPorcentaje', 'editarValorDescuento', 'editarPorcentajeDescuento');
+
+                // Cargar datos en modal de editar
+                const editarModal = document.getElementById('editarCuponModal');
+                editarModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    
+                    // Obtener datos del botón
+                    document.getElementById('editarCuponId').value = button.getAttribute('data-cupon-id');
+                    document.getElementById('editarCodigo').value = button.getAttribute('data-cupon-codigo');
+                    document.getElementById('editarDescripcion').value = button.getAttribute('data-cupon-descripcion');
+                    document.getElementById('editarTipoDescuento').value = button.getAttribute('data-cupon-tipodescuento');
+                    document.getElementById('editarValorDescuento').value = button.getAttribute('data-cupon-valordescuento');
+                    document.getElementById('editarPorcentajeDescuento').value = button.getAttribute('data-cupon-porcentajedescuento');
+                    document.getElementById('editarFechaInicio').value = button.getAttribute('data-cupon-fechainicio');
+                    document.getElementById('editarFechaExpiracion').value = button.getAttribute('data-cupon-fechaexpiracion');
+                    document.getElementById('editarUsosMaximos').value = button.getAttribute('data-cupon-usosmaximos');
+                    document.getElementById('editarMontoMinimoCompra').value = button.getAttribute('data-cupon-montominimo');
+                    
+                    // Configurar checkbox (solo queda el de primera compra)
+                    const primeraCompraCheckbox = document.getElementById('editarSoloPrimeraCompra');
+                    primeraCompraCheckbox.checked = button.getAttribute('data-cupon-soloprimeracompra') === 'True';
+
+                    // Actualizar campos según tipo de descuento
+                    document.getElementById('editarTipoDescuento').dispatchEvent(new Event('change'));
+                });
+
+                // Validación antes de enviar formularios
+                document.getElementById('crearCuponForm').addEventListener('submit', function(e) {
+                    if (!validarFormularioCupon(e)) {
+                        e.preventDefault();
+                    }
+                });
+
+                document.getElementById('editarCuponForm').addEventListener('submit', function(e) {
+                    if (!validarFormularioCupon(e)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            function validarFormularioCupon(event) {
+                const form = event.target;
+                const tipoDescuento = form.querySelector('select[name="TipoDescuento"]').value;
+                let esValido = true;
+                
+                if (tipoDescuento === '@TipoDescuento.MontoFijo') {
+                    const valorInput = form.querySelector('input[name="ValorDescuento"]');
+                    const valor = parseFloat(valorInput.value);
+                    
+                    if (!valor || valor <= 0) {
+                        alert('Por favor ingrese un valor de descuento válido');
+                        valorInput.focus();
+                        esValido = false;
+                    }
+                } else {
+                    const porcentajeInput = form.querySelector('input[name="PorcentajeDescuento"]');
+                    const porcentaje = parseFloat(porcentajeInput.value);
+                    
+                    if (!porcentaje || porcentaje <= 0 || porcentaje > 100) {
+                        alert('Por favor ingrese un porcentaje de descuento válido (1-100%)');
+                        porcentajeInput.focus();
+                        esValido = false;
+                    }
+                }
+                
+                return esValido;
+            }
+        </script>
+    }
+</body>
+</html>

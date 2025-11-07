@@ -1,22 +1,29 @@
+# Directorios de compilación
 bin/
 obj/
 out/
+publish/
 Debug/
 Release/
-publish/
+
+# Archivos binarios
 *.exe
 *.dll
+*.pdb
+
+# Logs
 *.log
-# *.db
-*.pdb
-# *.db
-# *.db-shm
-# *.db-wal
-# *.sqlite
-# *.sqlite3bin/
-obj/
-# *.db
-*.dll
-*.exe
-*.pdb
+
+# Bases de datos
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Archivos de configuración
 *.json
+
+# Directorios de dependencias
+node_modules/
+packages/
