@@ -58,7 +58,7 @@ namespace Ezel_Market.Controllers
         // POST: Inventario/Create (con imagen)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo)
+        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo)
         {
             if (ModelState.IsValid)
             {
@@ -112,7 +112,7 @@ namespace Ezel_Market.Controllers
         // POST: Inventario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo)
         {
             if (id != inventario.Id)
                 return NotFound();
@@ -129,7 +129,8 @@ namespace Ezel_Market.Controllers
                     existingInventario.CategoriasId = inventario.CategoriasId;
                     existingInventario.Cantidad = inventario.Cantidad;
                     existingInventario.PrecioCompra = inventario.PrecioCompra;
-                    existingInventario.PrecioVenta = inventario.PrecioVenta;
+                    existingInventario.PrecioVentaMinorista = inventario.PrecioVentaMinorista;
+                    existingInventario.PrecioVentaMayorista = inventario.PrecioVentaMayorista;
                     existingInventario.FechaIngreso = inventario.FechaIngreso;
 
                     // Si se sube una nueva imagen, reemplazar la anterior

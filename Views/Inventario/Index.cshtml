@@ -18,7 +18,8 @@
             <th>Categoría</th>
             <th>Cantidad</th>
             <th>Precio Compra</th>
-            <th>Precio Venta</th>
+            <th>Precio Venta Minorista</th>
+            <th>Precio Venta Mayorista</th>
             <th>Fecha Ingreso</th>
             <th>Acciones</th>
         </tr>
@@ -41,12 +42,15 @@
                 <td>@item.Categoria?.Nombre</td>
                 <td>@item.Cantidad</td>
                 <td>S/ @item.PrecioCompra.ToString("0.00")</td>
-                <td>S/ @item.PrecioVenta.ToString("0.00")</td>
+                <td>S/ @item.PrecioVentaMinorista.ToString("0.00")</td>
+                <td>S/ @item.PrecioVentaMayorista.ToString("0.00")</td>
                 <td>@item.FechaIngreso.ToShortDateString()</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    <div class="btn-group" role="group">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    </div>
                 </td>
             </tr>
         }

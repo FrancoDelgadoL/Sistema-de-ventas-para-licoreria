@@ -1,33 +1,33 @@
-INSERT INTO Inventario (NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso,Marca,GradoAlcohol,Imagen) VALUES
-	 ('Cerveza Pilsen Callao 6-pack',1,150,31.2,39,'2025-11-04','Pilsen Callao','4.8','/img/productos/pilsen_pack.png'),
-	 ('Cerveza Cusqueña Dorada 6-pack',1,120,33.6,42,'2025-11-04','Cusqueña','5.0','/img/productos/cusquena_dorada.png'),
-	 ('Cerveza Corona Extra 6-pack',1,90,40,50,'2025-11-04','Corona','4.5','/img/productos/corona_pack.png'),
-	 ('Cerveza Heineken 6-pack',1,70,38.4,48,'2025-11-04','Heineken','5.0','/img/productos/heineken_pack.png'),
-	 ('Vino Tinto Tabernero Malbec',2,50,28,35,'2025-11-04','Tabernero','13.0','/img/productos/tabernero_malbec.png'),
-	 ('Vino Blanco Santiago Queirolo',2,45,24,30,'2025-11-04','Santiago Queirolo','12.5','/img/productos/queirolo_blanco.png'),
-	 ('Vino Rosé Intipalka',2,30,32,40,'2025-11-04','Intipalka','12.0','/img/productos/intipalka_rose.png'),
-	 ('Pisco Quebranta BARSOL',3,40,44,55,'2025-11-04','BARSOL','40.0','/img/productos/barsol_quebranta.png'),
-	 ('Pisco Acholado Cuatro Gallos',3,35,48,60,'2025-11-04','Cuatro Gallos','40.0','/img/productos/cuatro_gallos.png'),
-	 ('Pisco Mosto Verde Intipalka',3,20,68,85,'2025-11-04','Intipalka','42.0','/img/productos/intipalka_mosto.png');
-INSERT INTO Inventario (NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso,Marca,GradoAlcohol,Imagen) VALUES
-	 ('Ron Cartavio Black Barrel',4,25,60,75,'2025-11-04','Cartavio','40.0','/img/productos/cartavio_black.png'),
-	 ('Ron Appleton Estate Signature',4,30,72,90,'2025-11-04','Appleton Estate','40.0','/img/productos/appleton.png'),
-	 ('Ron Havana Club 7 Años',4,15,88,110,'2025-11-04','Havana Club','40.0','/img/productos/havana_7.png'),
-	 ('Whisky Johnnie Walker Red Label',5,40,64,80,'2025-11-04','Johnnie Walker','40.0','/img/productos/jw_red.png'),
-	 ('Whisky Johnnie Walker Black Label',5,30,104,130,'2025-11-04','Johnnie Walker','40.0','/img/productos/jw_black.png'),
-	 ('Whisky Jack Daniels Old No. 7',5,25,96,120,'2025-11-04','Jack Daniels','40.0','/img/productos/jack_daniels.png'),
-	 ('Whisky Jameson Irish Whiskey',5,20,76,95,'2025-11-04','Jameson','40.0','/img/productos/jameson.png'),
-	 ('Tequila Jose Cuervo Especial',6,30,68,85,'2025-11-04','Jose Cuervo','38.0','/img/productos/jose_cuervo.png'),
-	 ('Tequila Patrón Silver',6,10,144,180,'2025-11-04','Patrón','40.0','/img/productos/patron_silver.png'),
-	 ('Vodka Absolut Blue',7,40,56,70,'2025-11-04','Absolut','40.0','/img/productos/absolut_blue.png');
-INSERT INTO Inventario (NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso,Marca,GradoAlcohol,Imagen) VALUES
-	 ('Vodka Smirnoff Red',7,50,44,55,'2025-11-04','Smirnoff','40.0','/img/productos/smirnoff_red.png'),
-	 ('Gin Beefeater London Dry',7,25,72,90,'2025-11-04','Beefeater','40.0','/img/productos/beefeater.png'),
-	 ('Gin Hendricks',7,15,128,160,'2025-11-04','Hendricks','41.4','/img/productos/hendricks.png'),
-	 ('Coca-Cola 1.5L',8,100,6.4,8,'2025-11-04','Coca-Cola','0.0','/img/productos/coca_cola.png'),
-	 ('Inca Kola 1.5L',8,100,6.4,8,'2025-11-04','Inca Kola','0.0','/img/productos/inca_kola.png'),
-	 ('Agua Tónica Evervess 1.5L',8,80,6,7.5,'2025-11-04','Evervess','0.0','/img/productos/evervess.png'),
-	 ('Guaraná 1.5L',8,70,5.6,7,'2025-11-04','Guaraná','0.0','/img/productos/guarana.png'),
-	 ('Red Bull Energy Drink',8,60,7.2,9,'2025-11-04','Red Bull','0.0','/img/productos/red_bull.png'),
-	 ('Jugo de Naranja Watts 1L',8,40,8,10,'2025-11-04','Watts','0.0','/img/productos/watts_naranja.png'),
-	 ('Bolsa de Hielo 2kg',8,50,4,5,'2025-11-04','Generica','0.0','/img/productos/hielo.png');
+INSERT INTO Inventario (Cantidad,CategoriasId,FechaIngreso,GradoAlcohol,Imagen,Marca,NombreProducto,PrecioCompra,PrecioVentaMayorista,PrecioVentaMinorista) VALUES
+	 (50,7,'2025-11-04','40.0','/img/productos/smirnoff_red.png','Smirnoff','Vodka Smirnoff Red',44,'49.5',55),
+	 (25,7,'2025-11-04','40.0','/img/productos/beefeater.png','Beefeater','Gin Beefeater London Dry',72,'81',90),
+	 (15,7,'2025-11-04','41.4','/img/productos/hendricks.png','Hendricks','Gin Hendricks',128,'144',160),
+	 (100,8,'2025-11-04','0.0','/img/productos/coca_cola.png','Coca-Cola','Coca-Cola 1.5L',6.4,'7.2',8),
+	 (100,8,'2025-11-04','0.0','/img/productos/inca_kola.png','Inca Kola','Inca Kola 1.5L',6.4,'7.2',8),
+	 (80,8,'2025-11-04','0.0','/img/productos/evervess.png','Evervess','Agua Tónica Evervess 1.5L',6,'6.75',7.5),
+	 (70,8,'2025-11-04','0.0','/img/productos/guarana.png','Guaraná','Guaraná 1.5L',5.6,'6.3',7),
+	 (60,8,'2025-11-04','0.0','/img/productos/red_bull.png','Red Bull','Red Bull Energy Drink',7.2,'8.1',9),
+	 (40,8,'2025-11-04','0.0','/img/productos/watts_naranja.png','Watts','Jugo de Naranja Watts 1L',8,'9',10),
+	 (50,8,'2025-11-04','0.0','/img/productos/hielo.png','Generica','Bolsa de Hielo 2kg',4,'4.5',5);
+INSERT INTO Inventario (Cantidad,CategoriasId,FechaIngreso,GradoAlcohol,Imagen,Marca,NombreProducto,PrecioCompra,PrecioVentaMayorista,PrecioVentaMinorista) VALUES
+	 (25,4,'2025-11-04','40.0','/img/productos/cartavio_black.png','Cartavio','Ron Cartavio Black Barrel',60,'67.5',75),
+	 (30,4,'2025-11-04','40.0','/img/productos/appleton.png','Appleton Estate','Ron Appleton Estate Signature',72,'81',90),
+	 (15,4,'2025-11-04','40.0','/img/productos/havana_7.png','Havana Club','Ron Havana Club 7 Años',88,'99',110),
+	 (40,5,'2025-11-04','40.0','/img/productos/jw_red.png','Johnnie Walker','Whisky Johnnie Walker Red Label',64,'72',80),
+	 (30,5,'2025-11-04','40.0','/img/productos/jw_black.png','Johnnie Walker','Whisky Johnnie Walker Black Label',104,'117',130),
+	 (25,5,'2025-11-04','40.0','/img/productos/jack_daniels.png','Jack Daniels','Whisky Jack Daniels Old No. 7',96,'108',120),
+	 (20,5,'2025-11-04','40.0','/img/productos/jameson.png','Jameson','Whisky Jameson Irish Whiskey',76,'85.5',95),
+	 (30,6,'2025-11-04','38.0','/img/productos/jose_cuervo.png','Jose Cuervo','Tequila Jose Cuervo Especial',68,'76.5',85),
+	 (10,6,'2025-11-04','40.0','/img/productos/patron_silver.png','Patrón','Tequila Patrón Silver',144,'162',180),
+	 (40,7,'2025-11-04','40.0','/img/productos/absolut_blue.png','Absolut','Vodka Absolut Blue',56,'63',70);
+INSERT INTO Inventario (Cantidad,CategoriasId,FechaIngreso,GradoAlcohol,Imagen,Marca,NombreProducto,PrecioCompra,PrecioVentaMayorista,PrecioVentaMinorista) VALUES
+	 (150,1,'2025-11-04','4.8','/img/productos/pilsen_pack.png','Pilsen Callao','Cerveza Pilsen Callao 6-pack',31.2,'35.1',39),
+	 (120,1,'2025-11-04','5.0','/img/productos/cusquena_dorada.png','Cusqueña','Cerveza Cusqueña Dorada 6-pack',33.6,'37.8',42),
+	 (90,1,'2025-11-04','4.5','/img/productos/corona_pack.png','Corona','Cerveza Corona Extra 6-pack',40,'45',50),
+	 (70,1,'2025-11-04','5.0','/img/productos/heineken_pack.png','Heineken','Cerveza Heineken 6-pack',38.4,'43.2',48),
+	 (50,2,'2025-11-04','13.0','/img/productos/tabernero_malbec.png','Tabernero','Vino Tinto Tabernero Malbec',28,'31.5',35),
+	 (45,2,'2025-11-04','12.5','/img/productos/queirolo_blanco.png','Santiago Queirolo','Vino Blanco Santiago Queirolo',24,'27',30),
+	 (30,2,'2025-11-04','12.0','/img/productos/intipalka_rose.png','Intipalka','Vino Rosé Intipalka',32,'36',40),
+	 (40,3,'2025-11-04','40.0','/img/productos/barsol_quebranta.png','BARSOL','Pisco Quebranta BARSOL',44,'49.5',55),
+	 (35,3,'2025-11-04','40.0','/img/productos/cuatro_gallos.png','Cuatro Gallos','Pisco Acholado Cuatro Gallos',48,'54',60),
+	 (20,3,'2025-11-04','42.0','/img/productos/intipalka_mosto.png','Intipalka','Pisco Mosto Verde Intipalka',68,'76.5',85);
