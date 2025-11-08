@@ -18,6 +18,9 @@ namespace Ezel_Market.Data
 
         public DbSet<Cupon> Cupones { get; set; }
 
+        // HISTORIAL INVENTARIO
+        public DbSet<HistorialInventario> HistorialInventarios { get; set; }
+
         // INVENTARIO
         public DbSet<Inventario> Inventarios { get; set; }
 
