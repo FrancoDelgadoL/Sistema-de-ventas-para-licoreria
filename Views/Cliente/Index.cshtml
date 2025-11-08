@@ -1,231 +1,239 @@
-@model List<Ezel_Market.Models.ProductoVistaModel>
+@* PASO 1: Especificar el ViewModel que esta vista recibe *@
+@model Ezel_Market.Models.ClienteCatalogoViewModel
+
 @{
     ViewData["Title"] = "Catálogo de Productos";
 }
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - Ezel Market</title>
+    
+    <!-- Enlaces CSS (los que estaban en _Layout.cshtml) -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    
+    <!-- Tu CSS personalizado para esta página -->
+    <link rel="stylesheet" href="~/css/Cliente/VistaInicio.css" />
+</head>
+<body>
 
-<link rel="stylesheet" href="~/css/Cliente/VistaInicio.css" />
+    @* Este es TU header (el granate de la foto) *@
+    @* Reemplaza tu header por este *@
+    <header class="navbar">
+        <div class="nav-left">
+            <h1 class="logo">Ezel Market</h1>
+        </div>
 
-<header class="navbar">
-    <div class="nav-left">
-        <h1 class="logo">Ezel Market</h1>
-    </div>
+        <div class="nav-right">
+            @* 1. Dejamos el botón del carrito tal como está *@
+            <button id="btnCarrito" class="carrito-btn" aria-haspopup="dialog" aria-controls="carritoModal">
+                🛒 <span id="contadorCarrito">0</span>
+            </button>
 
-    <div class="nav-right">
-        <button id="btnPerfil" class="perfil-btn" onclick="location.href='@Url.Action("Perfil","Cliente")'">
-            <span class="perfil-circle">C</span>
-            <span class="perfil-text">Mi Perfil</span>
-        </button>
+            @* 2. Eliminamos el botón "Mi Perfil" estático *@
 
-        <button id="btnCarrito" class="carrito-btn" aria-haspopup="dialog" aria-controls="carritoModal">
-            🛒 <span id="contadorCarrito">0</span>
-        </button>
-    </div>
-</header>
-
-<main class="container">
-    <section class="catalogo-header">
-        <h2>Catálogo de Productos</h2>
-        <p>Descubre nuestras mejores bebidas y snacks. — Calidad y buen precio.</p>
-    </section>
-
-    <!-- FILTROS MEJORADOS -->
-    <section class="filtros-container">
-        <input id="buscador" type="text" placeholder="Buscar por nombre, marca o categoría..." class="filtro-input" />
-        <select id="selectCategoria" class="filtro-select">
-            <option value="">Todas las categorías</option>
-            @foreach (var categoria in ViewBag.Categorias)
-            {
-                <option value="@categoria">@categoria</option>
-            }
-        </select>
-        <button id="btnLimpiarFiltros" class="filtro-btn">Limpiar Filtros</button>
-    </section>
-
-    <!-- CONTADOR DE RESULTADOS -->
-    <div class="resultados-info">
-        <span id="contadorResultados">Mostrando @Model.Count productos</span>
-    </div>
-
-    <!-- PRODUCTOS DESDE BASE DE DATOS -->
-    <section class="catalogo-grid">
-        @foreach (var producto in Model)
-        {
-            <article class="producto-card" 
-                     data-categoria="@producto.Categoria" 
-                     data-nombre="@producto.Nombre" 
-                     data-marca="@producto.Marca"
-                     data-precio="@producto.Precio.ToString("0.00")" 
-                     data-img="@producto.Imagen"
-                     data-id="@producto.Id"
-                     data-stock="@producto.CantidadStock">
-                
-                @if (producto.CantidadStock < 10 && producto.CantidadStock > 0)
-                {
-                    <div class="card-top">
-                        <span class="descuento">¡Últimas unidades!</span>
-                    </div>
-                }
-                else if (producto.CantidadStock == 0)
-                {
-                    <div class="card-top">
-                        <span class="agotado">Agotado</span>
-                    </div>
-                }
-                
-                <img src="@producto.Imagen" alt="@producto.Nombre" class="producto-img" onerror="this.src='https://via.placeholder.com/200x200?text=Imagen+No+Disponible'" />
-                
-                <h4 class="producto-nombre">@producto.Nombre</h4>
-                
-                @if (!string.IsNullOrEmpty(producto.Marca))
-                {
-                    <p class="producto-marca">@producto.Marca</p>
-                }
-                
-                @if (producto.GradoAlcohol.HasValue)
-                {
-                    <p class="producto-grado">@producto.GradoAlcohol.Value.ToString("0.0")% Alc.</p>
-                }
-                
-                <div class="precios">
-                    <span class="precio-actual">S/ @producto.Precio.ToString("0.00")</span>
-                </div>
-                
-                <div class="stock-info">
-                    @if (producto.CantidadStock > 0)
-                    {
-                        <span class="stock-disponible">Stock: @producto.CantidadStock</span>
-                    }
-                    else
-                    {
-                        <span class="stock-agotado">Agotado</span>
-                    }
-                </div>
-                
-                <div class="card-actions">
-                    @if (producto.CantidadStock > 0)
-                    {
-                        <button class="btn-agregar" title="Agregar rápido">+</button>
-                    }
-                    <button class="btn-ver" title="Ver detalles">Ver</button>
-                </div>
-            </article>
-        }
-        
-        @if (!Model.Any())
-        {
-            <div class="no-productos">
-                <p>No hay productos disponibles en este momento.</p>
+            @* 3. Envolvemos el LoginPartial para darle estilo *@
+            <div class="login-partial-container">
+                <partial name="_LoginPartial" />
             </div>
-        }
-    </section>
-</main>
+        </div>
+    </header>
 
-<!-- MODALES (mantener igual que antes) -->
-<div id="productoModal" class="modal" role="dialog" aria-hidden="true">
-    <!-- ... tu modal de producto igual ... -->
-</div>
+    <main class="container">
+        <section class="catalogo-header">
+            <h2>Catálogo de Productos</h2>
+            <p>Descubre nuestras mejores bebidas y snacks. — Calidad y buen precio.</p>
+        </section>
 
-<div id="carritoModal" class="modal carrito-modal" role="dialog" aria-hidden="true">
-    <!-- ... tu modal de carrito igual ... -->
-</div>
-
-<!-- SCRIPTS MEJORADOS -->
-<script>
-    // ---------- Estado ----------
-    let carrito = [];
-    const IGV_RATE = 0.18;
-    let productosOriginales = []; // Para guardar todos los productos
-
-    // Selectores
-    const productoCards = document.querySelectorAll('.producto-card');
-    const contadorCarrito = document.getElementById('contadorCarrito');
-    const contadorResultados = document.getElementById('contadorResultados');
-    const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
-
-    // Guardar productos originales al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-        productosOriginales = Array.from(productoCards);
-    });
-
-    // ---------- FILTROS MEJORADOS ----------
-    document.getElementById('buscador').addEventListener('input', function(e) {
-        aplicarFiltros();
-    });
-
-    document.getElementById('selectCategoria').addEventListener('change', function(e) {
-        aplicarFiltros();
-    });
-
-    btnLimpiarFiltros.addEventListener('click', function() {
-        document.getElementById('buscador').value = '';
-        document.getElementById('selectCategoria').value = '';
-        aplicarFiltros();
-    });
-
-    function aplicarFiltros() {
-        const textoBusqueda = document.getElementById('buscador').value.toLowerCase();
-        const categoriaSeleccionada = document.getElementById('selectCategoria').value;
-        
-        let productosVisibles = 0;
-
-        productosOriginales.forEach(card => {
-            const nombre = card.dataset.nombre.toLowerCase();
-            const marca = card.dataset.marca.toLowerCase();
-            const categoria = card.dataset.categoria.toLowerCase();
+        <!-- FILTROS -->
+        <section class="filtros-container">
+            <input id="buscador" type="text" placeholder="Buscar producto..." class="filtro-input" />
             
-            const coincideTexto = nombre.includes(textoBusqueda) || 
-                                marca.includes(textoBusqueda) || 
-                                categoria.includes(textoBusqueda);
-            
-            const coincideCategoria = !categoriaSeleccionada || 
-                                    card.dataset.categoria === categoriaSeleccionada;
-            
-            const mostrar = coincideTexto && coincideCategoria;
-            
-            card.style.display = mostrar ? '' : 'none';
-            if (mostrar) productosVisibles++;
-        });
+            @* PASO 4: Llenar el <select> dinámicamente *@
+            <select id="selectCategoria" class="filtro-select">
+                <option value="">Todas las categorías</option>
+                
+                @if (Model.Categorias != null && Model.Categorias.Any())
+                {
+                    @foreach (var cat in Model.Categorias)
+                    {
+                        <option value="@cat.Nombre">@cat.Nombre</option>
+                    }
+                }
+            </select>
+        </section>
 
-        // Actualizar contador de resultados
-        contadorResultados.textContent = `Mostrando ${productosVisibles} de ${productosOriginales.length} productos`;
-        
-        // Mostrar mensaje si no hay resultados
-        const catalogoGrid = document.querySelector('.catalogo-grid');
-        let mensajeNoResultados = catalogoGrid.querySelector('.no-resultados');
-        
-        if (productosVisibles === 0) {
-            if (!mensajeNoResultados) {
-                mensajeNoResultados = document.createElement('div');
-                mensajeNoResultados.className = 'no-resultados';
-                mensajeNoResultados.innerHTML = `
-                    <p>No se encontraron productos que coincidan con tu búsqueda.</p>
-                    <button onclick="limpiarFiltrosRapido()">Mostrar todos los productos</button>
-                `;
-                catalogoGrid.appendChild(mensajeNoResultados);
+        <!-- PRODUCTOS -->
+        <section class="catalogo-grid">
+            
+            @* PASO 5: Reemplazar el @for estático por un @foreach dinámico *@
+            @if (Model.Productos != null && Model.Productos.Any())
+            {
+                @foreach (var prod in Model.Productos)
+                {
+                    <article class="producto-card" 
+                             data-categoria="@prod.Categoria.Nombre" 
+                             data-nombre="@prod.NombreProducto" 
+                             data-precio="@prod.PrecioVentaMinorista" 
+                             data-img="@Url.Content(prod.Imagen)">
+                        
+                        <div class="card-top">
+                            @* (Lógica de descuento si la tienes) *@
+                            @* <span class="descuento">-30%</span> *@
+                        </div>
+                        
+                        <img src="@Url.Content(prod.Imagen)" alt="@prod.NombreProducto" class="producto-img" />
+                        <h4 class="producto-nombre">@prod.NombreProducto</h4>
+                        
+                        <div class="precios">
+                            <span class="precio-actual">S/ @prod.PrecioVentaMinorista.ToString("F2")</span>
+                            @* (Lógica de precio antiguo si la tienes) *@
+                            @* <span class="precio-antiguo">S/ 90.70</span> *@
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button class="btn-agregar" title="Agregar rápido">+</button>
+                            <button class="btn-ver" title="Ver detalles">Ver</button>
+                        </div>
+                    </article>
+                }
             }
-        } else if (mensajeNoResultados) {
-            mensajeNoResultados.remove();
+            else
+            {
+                <p>No se encontraron productos.</p>
+            }
+
+        </section>
+    </main>
+
+    <!-- ... Tus Modales (Producto y Carrito) van aquí ... -->
+    <!-- MODAL PRODUCTO (centrado) -->
+    <div id="productoModal" class="modal" role="dialog" aria-hidden="true">
+         <!-- ... contenido del modal ... -->
+    </div>
+
+    <!-- MODAL CARRITO (centrado) -->
+    <div id="carritoModal" class="modal carrito-modal" role="dialog" aria-hidden="true">
+        <!-- ... contenido del modal ... -->
+    </div>
+
+
+    <!-- SCRIPTS -->
+    @* PASO 6: (MUY IMPORTANTE) Corregir el JavaScript para que los filtros funcionen juntos *@
+    <script>
+        // ---------- Estado ----------
+        let carrito = []; // {id, nombre, precio, img, cantidad}
+        const IGV_RATE = 0.18;
+
+        // Selectores (movidos a DOMContentLoaded)
+        let productoCards;
+        const contadorCarrito = document.getElementById('contadorCarrito');
+
+        // ... (resto de selectores de modales) ...
+        const productoModal = document.getElementById('productoModal');
+        const modalImg = document.getElementById('modal-img');
+        const modalNombre = document.getElementById('modal-nombre');
+        // ... etc ...
+        const carritoModal = document.getElementById('carritoModal');
+        const listaCarrito = document.getElementById('listaCarrito');
+        // ... etc ...
+        const buscadorInput = document.getElementById('buscador');
+        const categoriaSelect = document.getElementById('selectCategoria');
+
+
+        // ---------- Helpers ----------
+        function actualizarContador() {
+            const totalCantidad = carrito.reduce((s, it) => s + it.cantidad, 0);
+            contadorCarrito.textContent = totalCantidad;
         }
-    }
 
-    function limpiarFiltrosRapido() {
-        document.getElementById('buscador').value = '';
-        document.getElementById('selectCategoria').value = '';
-        aplicarFiltros();
-    }
+        function formatearPrecio(n) {
+            return `S/ ${n.toFixed(2)}`;
+        }
+        
+        // ... (resto de funciones helper: calcularTotales, abrirModal, cerrarModal) ...
+        
+        // ... (Lógica de Modal Producto) ...
 
-    // ---------- Resto de tu código JavaScript (carrito, modales, etc.) ----------
-    // ... (Mantén todo tu código JavaScript original de carrito y modales aquí) ...
+        // ... (Lógica de Carrito) ...
+        
+        // ... (Lógica de simulación de pago) ...
 
-    // Helper functions
-    function actualizarContador() {
-        const totalCantidad = carrito.reduce((s, it) => s + it.cantidad, 0);
-        contadorCarrito.textContent = totalCantidad;
-    }
+        // ---------- LÓGICA DE FILTRADO (CORREGIDA) ----------
+        function aplicarFiltros() {
+            const queryBusqueda = buscadorInput.value.toLowerCase();
+            const categoriaSeleccionada = categoriaSelect.value;
 
-    function formatearPrecio(n) {
-        return `S/ ${parseFloat(n).toFixed(2)}`;
-    }
+            // Recorremos todas las tarjetas CADA vez que un filtro cambia
+            document.querySelectorAll('.producto-card').forEach(card => {
+                const nombre = card.dataset.nombre.toLowerCase();
+                const categoria = card.dataset.categoria;
 
-    // ... (todo el resto de tu código JavaScript igual) ...
-</script>
+                // 1. ¿Pasa el filtro de categoría?
+                const pasaCategoria = (categoriaSeleccionada === "") || (categoria === categoriaSeleccionada);
+                
+                // 2. ¿Pasa el filtro de búsqueda?
+                const pasaBusqueda = nombre.includes(queryBusqueda);
+
+                // 3. Solo se muestra si pasa AMBOS filtros
+                if (pasaCategoria && pasaBusqueda) {
+                    card.style.display = ''; // Mostrar
+                } else {
+                    card.style.display = 'none'; // Ocultar
+                }
+            });
+        }
+
+        // ---------- Inicialización (Event Listeners) ----------
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // Asignamos los listeners a los filtros
+            buscadorInput.addEventListener('input', aplicarFiltros);
+            categoriaSelect.addEventListener('change', aplicarFiltros);
+
+            // Asignamos listeners a las tarjetas de producto
+            // (Es importante hacerlo aquí DESPUÉS de que el DOM cargue)
+            productoCards = document.querySelectorAll('.producto-card');
+
+            productoCards.forEach(card => {
+                const nombre = card.dataset.nombre;
+                const precio = parseFloat(card.dataset.precio || 0);
+                const img = card.dataset.img;
+
+                // Click en el botón '+' (agrega rápido)
+                card.querySelector('.btn-agregar').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    agregarAlCarrito({ nombre, precio, img, cantidad: 1 });
+                });
+
+                // Click en 'Ver'
+                card.querySelector('.btn-ver').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    abrirProductoModal({ nombre, precio, img });
+                });
+
+                // Click en la tarjeta
+                card.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('btn-agregar')) return;
+                    abrirProductoModal({ nombre, precio, img });
+                });
+            });
+
+            // ... (resto de tus event listeners para modales, carrito, etc.) ...
+            // (Asegúrate de que toda la lógica que te pasé antes esté aquí)
+
+        }); // Fin de DOMContentLoaded
+
+    </script>
+
+    @* (El resto de tu script que maneja los modales y el carrito va aquí) *@
+    @* ... Pega tu script anterior completo aquí ... *@
+
+</body>
+</html>

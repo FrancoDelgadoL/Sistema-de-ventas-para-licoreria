@@ -3,6 +3,7 @@ using System;
 using Ezel_Market.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ezel_Market.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251107161444_ArregloInventario")]
+    partial class ArregloInventario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -139,37 +142,6 @@ namespace Ezel_Market.Data.Migrations
                     b.ToTable("Cupones");
                 });
 
-            modelBuilder.Entity("Ezel_Market.Models.HistorialInventario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CantidadAnterior")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CantidadNueva")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("InventarioId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("TipoMovimiento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UsuarioId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InventarioId");
-
-                    b.ToTable("HistorialInventarios");
-                });
-
             modelBuilder.Entity("Ezel_Market.Models.Inventario", b =>
                 {
                     b.Property<int>("Id")
@@ -203,7 +175,7 @@ namespace Ezel_Market.Data.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal>("PrecioVentaMayorista")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("PrecioVentaMinorista")
                         .HasColumnType("decimal(10,2)");
@@ -448,17 +420,6 @@ namespace Ezel_Market.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("Ezel_Market.Models.HistorialInventario", b =>
-                {
-                    b.HasOne("Ezel_Market.Models.Inventario", "Inventario")
-                        .WithMany()
-                        .HasForeignKey("InventarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Inventario");
                 });
 
             modelBuilder.Entity("Ezel_Market.Models.Inventario", b =>

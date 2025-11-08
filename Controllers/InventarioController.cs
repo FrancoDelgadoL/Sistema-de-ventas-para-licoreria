@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 
 namespace Ezel_Market.Controllers
 {
@@ -58,7 +59,7 @@ namespace Ezel_Market.Controllers
         // POST: Inventario/Create (con imagen)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo)
+        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo)
         {
             if (ModelState.IsValid)
             {
@@ -112,58 +113,87 @@ namespace Ezel_Market.Controllers
         // POST: Inventario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVenta,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo)
         {
             if (id != inventario.Id)
-                return NotFound();
-
-            if (ModelState.IsValid)
-            {
-                try
                 {
-                    var existingInventario = await _context.Inventarios.FindAsync(id);
-                    if (existingInventario == null)
-                        return NotFound();
+                    return NotFound();
+                }
 
-                    existingInventario.NombreProducto = inventario.NombreProducto;
-                    existingInventario.CategoriasId = inventario.CategoriasId;
-                    existingInventario.Cantidad = inventario.Cantidad;
-                    existingInventario.PrecioCompra = inventario.PrecioCompra;
-                    existingInventario.PrecioVenta = inventario.PrecioVenta;
-                    existingInventario.FechaIngreso = inventario.FechaIngreso;
+                if (ModelState.IsValid) // Esto ya incluye tu validación de precios del Modelo
+                {
+                    // 1. OBTENEMOS EL ESTADO ANTIGUO (¡SIN RASTREO!)
+                    var inventarioAntiguo = await _context.Inventarios
+                        .AsNoTracking() // <-- Muy importante
+                        .FirstOrDefaultAsync(i => i.Id == id);
 
-                    // Si se sube una nueva imagen, reemplazar la anterior
-                    if (ImagenArchivo != null && ImagenArchivo.Length > 0)
+                    if (inventarioAntiguo == null)
                     {
-                        string carpetaImagenes = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes");
-                        if (!Directory.Exists(carpetaImagenes))
-                        {
-                            Directory.CreateDirectory(carpetaImagenes);
-                        }
-
-                        string nombreArchivo = Path.GetFileName(ImagenArchivo.FileName);
-                        string rutaArchivo = Path.Combine(carpetaImagenes, nombreArchivo);
-
-                        using (var stream = new FileStream(rutaArchivo, FileMode.Create))
-                        {
-                            await ImagenArchivo.CopyToAsync(stream);
-                        }
-
-                        existingInventario.Imagen = "/imagenes/" + nombreArchivo;
+                        return NotFound();
                     }
 
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException ex)
-                {
-                    ModelState.AddModelError("", "Error al guardar cambios: " + (ex.InnerException?.Message ?? ex.Message));
-                }
-            }
+                    try
+                    {
+                        // 2. LÓGICA DE HISTORIAL
+                        int cantidadAntigua = inventarioAntiguo.Cantidad;
+                        int cantidadNueva = inventario.Cantidad; // La del formulario
 
-            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
-            return View(inventario);
-        }
+                        if (cantidadAntigua != cantidadNueva)
+                        {
+                            
+                            // 👇 ¡AQUÍ ESTÁ LA MAGIA! 👇
+                            string usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                            var historial = new HistorialInventario
+                            {
+                                InventarioId = inventario.Id,
+                                CantidadAnterior = cantidadAntigua,
+                                CantidadNueva = cantidadNueva,
+                                TipoMovimiento = "Edición Manual",
+                                Fecha = DateTime.Now,
+                                UsuarioId = usuarioId  // <--- AÑADA ESTA LÍNEA
+                            };
+                            _context.HistorialInventarios.Add(historial); // Añadimos historial
+                        }
+
+                        // 3. LÓGICA DE IMAGEN
+                        if (ImagenArchivo != null && ImagenArchivo.Length > 0)
+                        {
+                            // ... (tu código para guardar la imagen) ...
+                            string carpetaImagenes = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes");
+                            if (!Directory.Exists(carpetaImagenes)) Directory.CreateDirectory(carpetaImagenes);
+                            string nombreArchivo = Path.GetFileName(ImagenArchivo.FileName);
+                            string rutaArchivo = Path.Combine(carpetaImagenes, nombreArchivo);
+                            using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                            {
+                                await ImagenArchivo.CopyToAsync(stream);
+                            }
+                            inventario.Imagen = "/imagenes/" + nombreArchivo; // Asignamos la nueva imagen
+                        }
+                        else
+                        {
+                            // Si no se subió imagen, mantenemos la antigua
+                            inventario.Imagen = inventarioAntiguo.Imagen;
+                        }
+
+                        // 4. ACTUALIZAMOS LA ENTIDAD
+                        _context.Update(inventario); // <-- EF se encarga de actualizar todo el objeto
+
+                        // 5. GUARDAMOS TODO (Inventario e Historial)
+                        await _context.SaveChangesAsync();
+                        
+                        TempData["MensajeExito"] = "¡Producto actualizado exitosamente!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        ModelState.AddModelError("", "Error al guardar cambios: " + (ex.InnerException?.Message ?? ex.Message));
+                    }
+                }
+
+                // Si el modelo no es válido
+                ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
+                return View(inventario);
+            }
 
         // GET: Inventario/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -198,6 +228,19 @@ namespace Ezel_Market.Controllers
         private bool InventarioExists(int id)
         {
             return _context.Inventarios.Any(e => e.Id == id);
+        }
+
+        // GET: Inventario/ObtenerHistorialGeneralPartial
+        public async Task<IActionResult> ObtenerHistorialGeneralPartial()
+        {
+            // Obtenemos TODO el historial
+            var historialCompleto = await _context.HistorialInventarios
+                .Include(h => h.Inventario) // <-- Incluimos el producto para saber su nombre
+                .OrderByDescending(h => h.Fecha) // Lo ordenamos por fecha
+                .ToListAsync();
+
+            // Devolvemos una nueva vista parcial
+            return PartialView("_HistorialGeneralPartial", historialCompleto);
         }
     }
 }

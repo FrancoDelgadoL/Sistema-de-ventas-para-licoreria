@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ezel_Market.Models
 {
-    public class Inventario
+    public class Inventario : IValidatableObject
     {
         [Key]
         public int Id { get; set; }
@@ -30,8 +30,25 @@ namespace Ezel_Market.Models
 
         [Required(ErrorMessage = "El precio de venta es obligatorio")]
         [Column(TypeName = "decimal(10,2)")]
-        [Display(Name = "Precio de venta")]
-        public decimal PrecioVenta { get; set; }
+        [Display(Name = "Precio Venta Minorista")]
+        public decimal PrecioVentaMinorista { get; set; }
+
+        [Required(ErrorMessage = "El precio mayorista es obligatorio")] // <-- AÑADE ESTO
+        [Column(TypeName = "decimal(10,2)")] // <-- AÑADE ESTO
+        [Display(Name = "Precio Venta Mayorista")] // <-- AÑADE ESTO
+        public decimal PrecioVentaMayorista { get; set; }
+
+        // 2. Añade este método de validación
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (PrecioVentaMinorista < PrecioVentaMayorista)
+            {
+                yield return new ValidationResult(
+                    "El precio minorista no puede ser menor que el precio mayorista.",
+                    new[] { "PrecioVentaMinorista", "PrecioVentaMayorista" }
+                );
+            }
+        }    
 
         [Display(Name = "Fecha de ingreso")]
         [DataType(DataType.Date)]

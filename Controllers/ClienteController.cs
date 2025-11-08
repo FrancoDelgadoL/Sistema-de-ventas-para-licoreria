@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Ezel_Market.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Ezel_Market.Data;
-using Microsoft.EntityFrameworkCore;
+using Ezel_Market.Data; 
+using Microsoft.EntityFrameworkCore; 
 
 namespace Ezel_Market.Controllers
 {
@@ -21,56 +21,35 @@ namespace Ezel_Market.Controllers
             ILogger<ClienteController> logger,
             UserManager<Usuarios> userManager,
             SignInManager<Usuarios> signInManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context) 
         {
             _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
-            _context = context;
-        }
+            _context = context; 
+        } 
 
+        // --- 6. MÉTODO INDEX TOTALMENTE ACTUALIZADO ---
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                // 1. Obtener TODAS las categorías desde la BD
-                var categorias = await _context.Categoria
-                    .OrderBy(c => c.Nombre)
-                    .Select(c => c.Nombre)
-                    .ToListAsync();
+            // 1. Crear la instancia del ViewModel
+            var viewModel = new ClienteCatalogoViewModel();
 
-                ViewBag.Categorias = categorias;
+            // 2. Llenar la lista de Productos
+            viewModel.Productos = await _context.Inventario 
+                .Include(p => p.Categoria) // Incluye la info de Categoria
+                .OrderBy(p => p.NombreProducto) // Ordena alfabéticamente
+                .ToListAsync();                 
 
-                // 2. Obtener productos con stock desde la BD
-                var productos = await _context.Inventario
-                    .Include(p => p.Categoria)
-                    .Where(p => p.Cantidad > 0)
-                    .Select(p => new ProductoVistaModel
-                    {
-                        Id = p.Id,
-                        Nombre = p.NombreProducto,
-                        Precio = p.PrecioVenta,
-                        Imagen = p.Imagen ?? "",
-                        Categoria = p.Categoria.Nombre,
-                        CantidadStock = p.Cantidad,
-                        Marca = p.Marca ?? "",
-                        GradoAlcohol = p.GradoAlcohol
-                    })
-                    .ToListAsync();
+            // 3. Llenar la lista de Categorías para el filtro
+            viewModel.Categorias = await _context.Categoria
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
 
-                return View(productos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al cargar productos");
-                ViewBag.Categorias = new List<string>();
-                return View(new List<ProductoVistaModel>());
-            }
+            // 4. Pasa el ViewModel (que contiene AMBAS listas) a la vista
+            return View(viewModel);
         }
-
-        public IActionResult Perfil()
-        {
-            return View();
-        }
+        
+        // ... (Aquí podrían ir tus otras acciones como Perfil, etc.) ...
     }
 }
