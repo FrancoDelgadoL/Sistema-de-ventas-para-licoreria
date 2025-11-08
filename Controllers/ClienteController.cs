@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Ezel_Market.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Ezel_Market.Data; // <-- 1. AÑADIR: Para que reconozca tu DbContext
-using Microsoft.EntityFrameworkCore; // <-- 2. AÑADIR: Para que funcione .Include() y .ToListAsync()
+using Ezel_Market.Data; 
+using Microsoft.EntityFrameworkCore; 
 
 namespace Ezel_Market.Controllers
 {
@@ -15,32 +15,41 @@ namespace Ezel_Market.Controllers
         private readonly ILogger<ClienteController> _logger;
         private readonly UserManager<Usuarios> _userManager;
         private readonly SignInManager<Usuarios> _signInManager;
-        
-        // --- 3. AÑADIR: El campo para guardar el DbContext ---
         private readonly ApplicationDbContext _context;
 
         public ClienteController(
             ILogger<ClienteController> logger,
             UserManager<Usuarios> userManager,
             SignInManager<Usuarios> signInManager,
-            ApplicationDbContext context) // <-- 4. AÑADIR: Pide el DbContext aquí
+            ApplicationDbContext context) 
         {
             _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
-            _context = context; // <-- 5. AÑADIR: Asigna el DbContext
-        }        
+            _context = context; 
+        } 
 
-        // --- 6. MODIFICAR: El método Index para jalar los datos ---
+        // --- 6. MÉTODO INDEX TOTALMENTE ACTUALIZADO ---
         public async Task<IActionResult> Index()
         {
-            // Esta es la consulta que jala los productos
-            var productos = await _context.Inventario  // De la tabla Inventario
-                .Include(p => p.Categoria)           // Incluye la info de Categoria
-                .ToListAsync();                      // Tráelos como una lista
+            // 1. Crear la instancia del ViewModel
+            var viewModel = new ClienteCatalogoViewModel();
 
-            // Pasa la lista de productos a la vista
-            return View(productos);
+            // 2. Llenar la lista de Productos
+            viewModel.Productos = await _context.Inventario 
+                .Include(p => p.Categoria) // Incluye la info de Categoria
+                .OrderBy(p => p.NombreProducto) // Ordena alfabéticamente
+                .ToListAsync();                 
+
+            // 3. Llenar la lista de Categorías para el filtro
+            viewModel.Categorias = await _context.Categoria
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+
+            // 4. Pasa el ViewModel (que contiene AMBAS listas) a la vista
+            return View(viewModel);
         }
+        
+        // ... (Aquí podrían ir tus otras acciones como Perfil, etc.) ...
     }
 }
