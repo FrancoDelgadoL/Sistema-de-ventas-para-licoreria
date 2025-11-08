@@ -15,80 +15,33 @@ body{
     background: linear-gradient(180deg, #fffaf9 0%, #fffefc 100%);
     color: #222;
 }
-/* ===== NAVBAR (CSS Corregido para _LoginPartial) ===== */
 
-/* Contenedor principal que pusimos en el Index.cshtml */
-.login-partial-container {
-    display: flex;
-    align-items: center;
+/* ===== NAVBAR ===== */
+.navbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:1rem 2rem; background: linear-gradient(90deg,var(--vino-dark),var(--vino));
+    color:#fff; position:sticky; top:0; z-index:50;
+    box-shadow: 0 6px 18px rgba(55,35,37,0.08);
 }
+.nav-left{display:flex;align-items:center;gap:1.5rem}
+.logo{font-weight:700; font-size:1.25rem; letter-spacing:0.6px}
+.mini-nav .nav-link{color:rgba(255,255,255,0.9); margin-right:0.6rem; text-decoration:none}
 
-/* * OBJETIVO 1: Poner los items en horizontal (uno al lado del otro).
- * El _LoginPartial usa un <ul> (lista), que es vertical. 
- * Lo forzamos a ser horizontal (flex).
-*/
-.login-partial-container ul.navbar-nav {
-    display: flex;
-    flex-direction: row; /* Pone los <li> en fila */
-    align-items: center;
-    list-style-type: none; /* Quita las viñetas (bullets) */
-    margin: 0;
-    padding: 0;
-    gap: 10px; /* Espacio entre el "Hello" y el "Logout" */
-}
+/* perfil y carrito */
+.nav-right{display:flex; align-items:center; gap:0.6rem}
+.perfil-btn{display:flex; align-items:center; gap:0.5rem; border-radius:999px; padding:0.35rem 0.6rem; border:none; background:transparent; color:#fff; cursor:pointer}
+.perfil-circle{width:30px;height:30px;display:inline-flex; align-items:center;justify-content:center;border-radius:50%; background:#fff; color:var(--vino-dark); font-weight:700}
+.perfil-text{font-size:0.95rem}
 
-/* Limpieza de los items de la lista (<li>) */
-.login-partial-container li.nav-item {
-    padding: 0;
-    margin: 0;
-}
+.carrito-btn{background:#fff; color:var(--vino-dark); border-radius:30px; padding:0.45rem 0.8rem; border:none; font-weight:700; cursor:pointer; position:relative}
+.carrito-btn span{background:var(--vino-dark); color:#fff; padding:0.18rem 0.5rem; border-radius:999px; margin-left:6px; font-size:0.85rem}
+.carrito-btn:hover{transform:translateY(-3px); transition:all .18s ease}
 
-/*
- * OBJETIVO 2: Forzar que TODO el texto sea blanco.
- * Usamos !important para "ganarle" a los estilos de Bootstrap.
-*/
+/* contador pop */
+#contadorCarrito.pop{transform:scale(1.25); transition:transform .22s}
 
-/* Para el enlace "Hello [Usuario]!" (que es un <a>) */
-.login-partial-container a.nav-link {
-    color: white !important; /* ¡FORZAR TEXTO BLANCO! */
-    padding: 8px 12px;
-    border-radius: 20px;
-    background-color: rgba(255, 255, 255, 0.1);
-    transition: background-color 0.3s ease;
-    white-space: nowrap; /* Evita que el texto se parta */
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* Para el formulario que envuelve el botón "Logout" */
-.login-partial-container form.form-inline {
-    margin: 0; /* Limpiar márgenes */
-}
-
-/* Para el botón "Logout" (que es un <button>) */
-.login-partial-container button.nav-link {
-    color: white !important; /* ¡FORZAR TEXTO BLANCO! */
-    background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 8px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    font-size: 0.9rem;      /* Heredar el tamaño de fuente */
-    font-family: inherit; /* Heredar la fuente */
-    font-weight: 500;
-}
-
-/* --- Efectos Hover --- */
-.login-partial-container a.nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-.login-partial-container button.nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
+/* ====== Container ====== */
+.container{max-width:1200px;margin:1.3rem auto;padding:0 1rem}
 
 /* HEADER */
 .catalogo-header{text-align:center;margin:1.2rem 0 1.6rem}
@@ -196,4 +149,3 @@ body{
     .modal-imagen img{width:220px;height:220px}
     .carrito-modal .modal-contenido{ width:94% }
 }
-
