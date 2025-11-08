@@ -4,10 +4,22 @@
     ViewData["Title"] = "Inventario";
 }
 
+@if (TempData["MensajeExito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <h1>Gestión de Inventario</h1>
 
 <p>
     <a asp-action="Create" class="btn btn-primary">➕ Nuevo Producto</a>
+    
+    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#historialGeneralModal">
+        📜 Ver Historial General
+    </button>
 </p>
 
 <table class="table table-bordered table-striped">
@@ -18,16 +30,28 @@
             <th>Categoría</th>
             <th>Cantidad</th>
             <th>Precio Compra</th>
-            <th>Precio Venta Minorista</th>
-            <th>Precio Venta Mayorista</th>
-            <th>Fecha Ingreso</th>
-            <th>Acciones</th>
+            <th>Precio Venta Minorista</th> <th>Precio Venta Mayorista</th> <th>Fecha Ingreso</th> <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
-            <tr>
+            // 👇 1. ESTA ES TU LÓGICA DE ALERTA (YA ESTABA BIEN)
+            string rowClass = ""; // Por defecto, la fila no tiene color
+            int stockMinimo = 10; // <-- ¡PUEDES CAMBIAR ESTE NÚMERO!
+
+            if (item.Cantidad == 0)
+            {
+                rowClass = "table-danger"; // Rojo (Fuera de Stock)
+            }
+            else if (item.Cantidad <= stockMinimo)
+            {
+                rowClass = "table-warning"; // Naranja (Stock Bajo)
+            }
+            // 👆 FIN DE LA LÓGICA
+
+            // 👇 2. APLICAMOS LA CLASE A LA FILA (YA ESTABA BIEN)
+            <tr class="@rowClass">
                 <td>
                     @if (!string.IsNullOrEmpty(item.Imagen))
                     {
@@ -40,19 +64,80 @@
                 </td>
                 <td>@item.NombreProducto</td>
                 <td>@item.Categoria?.Nombre</td>
-                <td>@item.Cantidad</td>
+                
+                <td style="font-weight: bold; font-size: 1.1em;">
+                    @item.Cantidad
+                </td>
+                
                 <td>S/ @item.PrecioCompra.ToString("0.00")</td>
                 <td>S/ @item.PrecioVentaMinorista.ToString("0.00")</td>
                 <td>S/ @item.PrecioVentaMayorista.ToString("0.00")</td>
                 <td>@item.FechaIngreso.ToShortDateString()</td>
+                
                 <td>
-                    <div class="btn-group" role="group">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">Editar</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Detalles</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Eliminar</a>
                     </div>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<div class="modal fade" id="historialGeneralModal" tabindex="-1" aria-labelledby="historialGeneralModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="historialGeneralModalLabel">Historial General de Inventario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="historialGeneralModalBody">
+        <div class="text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    
+    <script>
+        $(document).ready(function () {
+            
+            // Script para el NUEVO modal general
+            $('#historialGeneralModal').on('show.bs.modal', function (event) {
+                var modal = $(this);
+                var modalBody = modal.find('.modal-body');
+                
+                // Poner el spinner
+                modalBody.html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>'); 
+                
+                // URL de la nueva acción del controlador
+                var url = '@Url.Action("ObtenerHistorialGeneralPartial", "Inventario")';
+
+                // Cargar el contenido usando .load()
+                modalBody.load(url, function(response, status, xhr) {
+                    if (status == "error") {
+                        modalBody.html('<div class="alert alert-danger">Error al cargar el historial.</div>');
+                    }
+                });
+            });
+
+            // Opcional: Limpiar el modal cuando se cierra, para que siempre recargue
+            $('#historialGeneralModal').on('hidden.bs.modal', function () {
+                var modalBody = $(this).find('.modal-body');
+                modalBody.html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>');
+            });
+        });
+    </script>
+}
