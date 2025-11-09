@@ -12,7 +12,7 @@
         <dd class="col-sm-9">@Model.NombreProducto</dd>
 
         <dt class="col-sm-3">Categoría</dt>
-        <dd class="col-sm-9">@Model.Categoria</dd>
+        <dd class="col-sm-9">@string.Join(", ", Model.Categorias.Select(c => c.Nombre))</dd>
 
         <dt class="col-sm-3">Cantidad</dt>
         <dd class="col-sm-9">@Model.Cantidad</dd>
