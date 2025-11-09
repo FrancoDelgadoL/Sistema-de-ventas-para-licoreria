@@ -3,6 +3,7 @@ using System;
 using Ezel_Market.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ezel_Market.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109024056_FixCarritoRelationship")]
+    partial class FixCarritoRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -290,7 +293,7 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("InventarioId")
+                    b.Property<int?>("InventarioId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("PedidoId")
@@ -298,6 +301,9 @@ namespace Ezel_Market.Data.Migrations
 
                     b.Property<decimal>("PrecioUnitario")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -586,9 +592,7 @@ namespace Ezel_Market.Data.Migrations
                 {
                     b.HasOne("Ezel_Market.Models.Inventario", "Inventario")
                         .WithMany()
-                        .HasForeignKey("InventarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("InventarioId");
 
                     b.HasOne("Ezel_Market.Models.Pedido", "Pedido")
                         .WithMany("Detalles")
