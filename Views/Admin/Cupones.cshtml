@@ -162,7 +162,7 @@
                                                                     data-cupon-fechaexpiracion="@item.FechaExpiracion.ToString("yyyy-MM-ddTHH:mm")"
                                                                     data-cupon-usosmaximos="@item.UsosMaximos"
                                                                     data-cupon-montominimo="@item.MontoMinimoCompra"
-                                                                    data-cupon-soloprimeracompra="@item.SoloPrimeraCompra">
+                                                                    data-cupon-activo="@item.Activo">
                                                                 <i class="bi bi-pencil"></i>
                                                             </button>
                                                             
@@ -253,11 +253,7 @@
                                     <input type="number" class="form-control" id="MontoMinimoCompra" name="MontoMinimoCompra" step="0.01" min="0" value="0">
                                 </div>
 
-                                <div class="mb-3 form-check">
-                                    <input type="hidden" name="SoloPrimeraCompra" value="false">
-                                    <input type="checkbox" class="form-check-input" id="SoloPrimeraCompra" name="SoloPrimeraCompra" value="true">
-                                    <label class="form-check-label" for="SoloPrimeraCompra">Solo para Primera Compra</label>
-                                </div>
+                                <!-- ❌ ELIMINADO: Checkbox de SoloPrimeraCompra -->
                             </div>
                         </div>
                     </div>
@@ -335,11 +331,7 @@
                                     <input type="number" class="form-control" id="editarMontoMinimoCompra" name="MontoMinimoCompra" step="0.01" min="0" value="0">
                                 </div>
 
-                                <div class="mb-3 form-check">
-                                    <input type="hidden" name="SoloPrimeraCompra" value="false">
-                                    <input type="checkbox" class="form-check-input" id="editarSoloPrimeraCompra" name="SoloPrimeraCompra" value="true">
-                                    <label class="form-check-label" for="editarSoloPrimeraCompra">Solo para Primera Compra</label>
-                                </div>
+                                <!-- ❌ ELIMINADO: Checkbox de SoloPrimeraCompra -->
                             </div>
                         </div>
                     </div>
@@ -355,117 +347,111 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    @section Scripts {
-        <script>
-            // Funcionalidad para mostrar/ocultar campos según tipo de descuento
-            function configurarTipoDescuento(selectId, divMontoId, divPorcentajeId, inputMontoId, inputPorcentajeId) {
-                const select = document.getElementById(selectId);
-                const divMonto = document.getElementById(divMontoId);
-                const divPorcentaje = document.getElementById(divPorcentajeId);
-                const inputMonto = document.getElementById(inputMontoId);
-                const inputPorcentaje = document.getElementById(inputPorcentajeId);
+    <script>
+        // Funcionalidad para mostrar/ocultar campos según tipo de descuento
+        function configurarTipoDescuento(selectId, divMontoId, divPorcentajeId, inputMontoId, inputPorcentajeId) {
+            const select = document.getElementById(selectId);
+            const divMonto = document.getElementById(divMontoId);
+            const divPorcentaje = document.getElementById(divPorcentajeId);
+            const inputMonto = document.getElementById(inputMontoId);
+            const inputPorcentaje = document.getElementById(inputPorcentajeId);
 
-                function actualizarCampos() {
-                    const tipo = select.value;
-                    
-                    if (tipo === '@TipoDescuento.MontoFijo') {
-                        divMonto.style.display = 'block';
-                        divPorcentaje.style.display = 'none';
-                        inputMonto.disabled = false;
-                        inputMonto.required = true;
-                        inputPorcentaje.disabled = true;
-                        inputPorcentaje.required = false;
-                        inputPorcentaje.value = '';
-                    } else {
-                        divMonto.style.display = 'none';
-                        divPorcentaje.style.display = 'block';
-                        inputMonto.disabled = true;
-                        inputMonto.required = false;
-                        inputMonto.value = '';
-                        inputPorcentaje.disabled = false;
-                        inputPorcentaje.required = true;
-                    }
+            function actualizarCampos() {
+                const tipo = select.value;
+                
+                if (tipo === '@TipoDescuento.MontoFijo') {
+                    divMonto.style.display = 'block';
+                    divPorcentaje.style.display = 'none';
+                    inputMonto.disabled = false;
+                    inputMonto.required = true;
+                    inputPorcentaje.disabled = true;
+                    inputPorcentaje.required = false;
+                    inputPorcentaje.value = '';
+                } else {
+                    divMonto.style.display = 'none';
+                    divPorcentaje.style.display = 'block';
+                    inputMonto.disabled = true;
+                    inputMonto.required = false;
+                    inputMonto.value = '';
+                    inputPorcentaje.disabled = false;
+                    inputPorcentaje.required = true;
                 }
-
-                select.addEventListener('change', actualizarCampos);
-                actualizarCampos(); // Ejecutar al cargar
             }
 
-            // Configurar ambos modales al cargar la página
-            document.addEventListener('DOMContentLoaded', function() {
-                // Configurar modal de crear
-                configurarTipoDescuento('TipoDescuento', 'divMontoFijo', 'divPorcentaje', 'ValorDescuento', 'PorcentajeDescuento');
+            select.addEventListener('change', actualizarCampos);
+            actualizarCampos(); // Ejecutar al cargar
+        }
+
+        // Configurar ambos modales al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar modal de crear
+            configurarTipoDescuento('TipoDescuento', 'divMontoFijo', 'divPorcentaje', 'ValorDescuento', 'PorcentajeDescuento');
+            
+            // Configurar modal de editar
+            configurarTipoDescuento('editarTipoDescuento', 'editarDivMontoFijo', 'editarDivPorcentaje', 'editarValorDescuento', 'editarPorcentajeDescuento');
+
+            // Cargar datos en modal de editar
+            const editarModal = document.getElementById('editarCuponModal');
+            editarModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
                 
-                // Configurar modal de editar
-                configurarTipoDescuento('editarTipoDescuento', 'editarDivMontoFijo', 'editarDivPorcentaje', 'editarValorDescuento', 'editarPorcentajeDescuento');
+                // Obtener datos del botón
+                document.getElementById('editarCuponId').value = button.getAttribute('data-cupon-id');
+                document.getElementById('editarCodigo').value = button.getAttribute('data-cupon-codigo');
+                document.getElementById('editarDescripcion').value = button.getAttribute('data-cupon-descripcion');
+                document.getElementById('editarTipoDescuento').value = button.getAttribute('data-cupon-tipodescuento');
+                document.getElementById('editarValorDescuento').value = button.getAttribute('data-cupon-valordescuento');
+                document.getElementById('editarPorcentajeDescuento').value = button.getAttribute('data-cupon-porcentajedescuento');
+                document.getElementById('editarFechaInicio').value = button.getAttribute('data-cupon-fechainicio');
+                document.getElementById('editarFechaExpiracion').value = button.getAttribute('data-cupon-fechaexpiracion');
+                document.getElementById('editarUsosMaximos').value = button.getAttribute('data-cupon-usosmaximos');
+                document.getElementById('editarMontoMinimoCompra').value = button.getAttribute('data-cupon-montominimo');
 
-                // Cargar datos en modal de editar
-                const editarModal = document.getElementById('editarCuponModal');
-                editarModal.addEventListener('show.bs.modal', function(event) {
-                    const button = event.relatedTarget;
-                    
-                    // Obtener datos del botón
-                    document.getElementById('editarCuponId').value = button.getAttribute('data-cupon-id');
-                    document.getElementById('editarCodigo').value = button.getAttribute('data-cupon-codigo');
-                    document.getElementById('editarDescripcion').value = button.getAttribute('data-cupon-descripcion');
-                    document.getElementById('editarTipoDescuento').value = button.getAttribute('data-cupon-tipodescuento');
-                    document.getElementById('editarValorDescuento').value = button.getAttribute('data-cupon-valordescuento');
-                    document.getElementById('editarPorcentajeDescuento').value = button.getAttribute('data-cupon-porcentajedescuento');
-                    document.getElementById('editarFechaInicio').value = button.getAttribute('data-cupon-fechainicio');
-                    document.getElementById('editarFechaExpiracion').value = button.getAttribute('data-cupon-fechaexpiracion');
-                    document.getElementById('editarUsosMaximos').value = button.getAttribute('data-cupon-usosmaximos');
-                    document.getElementById('editarMontoMinimoCompra').value = button.getAttribute('data-cupon-montominimo');
-                    
-                    // Configurar checkbox (solo queda el de primera compra)
-                    const primeraCompraCheckbox = document.getElementById('editarSoloPrimeraCompra');
-                    primeraCompraCheckbox.checked = button.getAttribute('data-cupon-soloprimeracompra') === 'True';
-
-                    // Actualizar campos según tipo de descuento
-                    document.getElementById('editarTipoDescuento').dispatchEvent(new Event('change'));
-                });
-
-                // Validación antes de enviar formularios
-                document.getElementById('crearCuponForm').addEventListener('submit', function(e) {
-                    if (!validarFormularioCupon(e)) {
-                        e.preventDefault();
-                    }
-                });
-
-                document.getElementById('editarCuponForm').addEventListener('submit', function(e) {
-                    if (!validarFormularioCupon(e)) {
-                        e.preventDefault();
-                    }
-                });
+                // Actualizar campos según tipo de descuento
+                document.getElementById('editarTipoDescuento').dispatchEvent(new Event('change'));
             });
 
-            function validarFormularioCupon(event) {
-                const form = event.target;
-                const tipoDescuento = form.querySelector('select[name="TipoDescuento"]').value;
-                let esValido = true;
-                
-                if (tipoDescuento === '@TipoDescuento.MontoFijo') {
-                    const valorInput = form.querySelector('input[name="ValorDescuento"]');
-                    const valor = parseFloat(valorInput.value);
-                    
-                    if (!valor || valor <= 0) {
-                        alert('Por favor ingrese un valor de descuento válido');
-                        valorInput.focus();
-                        esValido = false;
-                    }
-                } else {
-                    const porcentajeInput = form.querySelector('input[name="PorcentajeDescuento"]');
-                    const porcentaje = parseFloat(porcentajeInput.value);
-                    
-                    if (!porcentaje || porcentaje <= 0 || porcentaje > 100) {
-                        alert('Por favor ingrese un porcentaje de descuento válido (1-100%)');
-                        porcentajeInput.focus();
-                        esValido = false;
-                    }
+            // Validación antes de enviar formularios
+            document.getElementById('crearCuponForm').addEventListener('submit', function(e) {
+                if (!validarFormularioCupon(e)) {
+                    e.preventDefault();
                 }
+            });
+
+            document.getElementById('editarCuponForm').addEventListener('submit', function(e) {
+                if (!validarFormularioCupon(e)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        function validarFormularioCupon(event) {
+            const form = event.target;
+            const tipoDescuento = form.querySelector('select[name="TipoDescuento"]').value;
+            let esValido = true;
+            
+            if (tipoDescuento === '@TipoDescuento.MontoFijo') {
+                const valorInput = form.querySelector('input[name="ValorDescuento"]');
+                const valor = parseFloat(valorInput.value);
                 
-                return esValido;
+                if (!valor || valor <= 0) {
+                    alert('Por favor ingrese un valor de descuento válido');
+                    valorInput.focus();
+                    esValido = false;
+                }
+            } else {
+                const porcentajeInput = form.querySelector('input[name="PorcentajeDescuento"]');
+                const porcentaje = parseFloat(porcentajeInput.value);
+                
+                if (!porcentaje || porcentaje <= 0 || porcentaje > 100) {
+                    alert('Por favor ingrese un porcentaje de descuento válido (1-100%)');
+                    porcentajeInput.focus();
+                    esValido = false;
+                }
             }
-        </script>
-    }
+            
+            return esValido;
+        }
+    </script>
 </body>
 </html>

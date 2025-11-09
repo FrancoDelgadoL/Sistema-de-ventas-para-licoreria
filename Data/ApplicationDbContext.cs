@@ -11,11 +11,7 @@ namespace Ezel_Market.Data
             : base(options)
         {
         }
-
-        // INVENTARIO Y CATEGORIAS
-        //public DbSet<Inventario> Inventario { get; set; }
         public DbSet<Categorias> Categorias { get; set; }
-
          public DbSet<CategoriaInventario> CategoriaInventarios { get; set; }
         public DbSet<Cupon> Cupones { get; set; }
 
@@ -52,6 +48,24 @@ namespace Ezel_Market.Data
                 .WithMany(i => i.CategoriaInventarios)
                 .HasForeignKey(ci => ci.InventarioId);
             
+
+            // 🔥 NUEVO: Configuración para Pedidos
+            builder.Entity<Pedido>()
+                .HasMany(p => p.Detalles)
+                .WithOne(pd => pd.Pedido)
+                .HasForeignKey(pd => pd.PedidoId);
+
+            builder.Entity<PedidoDetalle>()
+                .HasOne(pd => pd.Inventario)
+                .WithMany()
+                .HasForeignKey(pd => pd.InventarioId);
+
+            // 🔥 NUEVO: Configuración para HistorialInventario
+            builder.Entity<HistorialInventario>()
+                .HasOne(hi => hi.Inventario)
+                .WithMany()
+                .HasForeignKey(hi => hi.InventarioId);
+
             // SEED DATA PARA ROLES
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole
@@ -96,7 +110,7 @@ namespace Ezel_Market.Data
                 new Categorias { Id = 8, Nombre = "Complementos", Descripcion = "Mezcladores, gaseosas y otros" }
             );
 
-            //Reglas de los cupones
+            // Configuración Cupones
             builder.Entity<Cupon>(entity =>
             {
                 entity.HasIndex(c => c.Codigo).IsUnique();

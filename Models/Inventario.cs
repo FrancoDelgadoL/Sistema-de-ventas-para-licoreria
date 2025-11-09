@@ -14,8 +14,6 @@ namespace Ezel_Market.Models
         [Display(Name = "Nombre del Producto")]
         public string NombreProducto { get; set; }
 
-        public ICollection<Categorias>? Categorias { get; set; }
-
         public ICollection<CategoriaInventario>? CategoriaInventarios { get; set; }
 
         [Required(ErrorMessage = "La cantidad es obligatoria")]

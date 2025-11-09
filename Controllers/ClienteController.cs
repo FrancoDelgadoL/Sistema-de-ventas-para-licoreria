@@ -36,7 +36,6 @@ namespace Ezel_Market.Controllers
         {
             var viewModel = new ClienteCatalogoViewModel();
             
-            // ✅ CORREGIDO: Usar SOLO Inventarios (coherente con tu DbContext)
             viewModel.Productos = await _context.Inventarios
                 .Include(p => p.CategoriaInventarios)
                     .ThenInclude(ci => ci.Categoria)
@@ -71,13 +70,17 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "Usuario no autenticado" });
                 }
 
-                // ✅ CORREGIDO: Usar SOLO Inventarios
                 var producto = await _context.Inventarios
-                    .FirstOrDefaultAsync(p => p.Id == model.InventarioId && p.Cantidad > 0);
+                    .FirstOrDefaultAsync(p => p.Id == model.InventarioId);
 
                 if (producto == null)
                 {
-                    return Json(new { success = false, message = "Producto no disponible o sin stock" });
+                    return Json(new { success = false, message = "Producto no encontrado" });
+                }
+
+                if (producto.Cantidad <= 0)
+                {
+                    return Json(new { success = false, message = "Producto sin stock disponible" });
                 }
 
                 if (model.Cantidad <= 0 || model.Cantidad > producto.Cantidad)
@@ -284,7 +287,7 @@ namespace Ezel_Market.Controllers
             }
         }
 
-        // ========== MÉTODOS DE CUPONES ==========
+        // ========== MÉTODOS DE CUPONES CORREGIDOS ==========
 
         [HttpPost]
         [Authorize]
@@ -293,42 +296,62 @@ namespace Ezel_Market.Controllers
             try
             {
                 var usuarioId = GetUsuarioId();
+        
+                // Validación básica del modelo
+                if (string.IsNullOrWhiteSpace(model.CodigoCupon))
+                {
+                    return Json(new { success = false, message = "El código del cupón es requerido" });
+                }
+
+                // Obtener el cupón
                 var cupon = await _context.Cupones
-                    .FirstOrDefaultAsync(c => c.Codigo == model.CodigoCupon && c.Activo);
+                    .FirstOrDefaultAsync(c => c.Codigo == model.CodigoCupon.Trim());
 
                 if (cupon == null)
                 {
-                    return Json(new { success = false, message = "Cupón no válido" });
+                    return Json(new { success = false, message = "Cupón no encontrado" });
                 }
 
-                if (!cupon.EsValido)
-                {
-                    return Json(new { success = false, message = "Cupón no disponible" });
-                }
-
+                // Obtener subtotal del carrito
                 var carritoItems = await _context.Carrito
                     .Where(ci => ci.UsuarioId == usuarioId)
                     .Include(ci => ci.Inventario)
                     .ToListAsync();
 
-                var subtotal = carritoItems.Sum(ci => ci.Inventario.PrecioVentaMinorista * ci.Cantidad);
-
-                if (subtotal < cupon.MontoMinimoCompra)
+                if (!carritoItems.Any())
                 {
-                    return Json(new { 
-                        success = false, 
-                        message = $"Monto mínimo no alcanzado. Requiere: S/ {cupon.MontoMinimoCompra}" 
-                    });
+                    return Json(new { success = false, message = "El carrito está vacío" });
                 }
 
+                var subtotal = carritoItems.Sum(ci => ci.Inventario.PrecioVentaMinorista * ci.Cantidad);
+                
+                // ✅ CORRECCIÓN: Solo validar, NO aplicar el cupón aún
+                var validacion = cupon.ValidarParaUsuario(usuarioId, subtotal);
+
+                if (!validacion.esValido)
+                {
+                    return Json(new { success = false, message = validacion.mensaje });
+                }
+
+                // ✅ CORRECCIÓN: Solo calcular el descuento, NO incrementar UsosActuales
                 var descuento = cupon.CalcularDescuento(subtotal);
+
+                if (descuento <= 0)
+                {
+                    return Json(new { success = false, message = "No se pudo calcular el descuento" });
+                }
 
                 return Json(new
                 {
                     success = true,
                     descuento = descuento,
                     tipoDescuento = cupon.TipoDescuento.ToString(),
-                    mensaje = $"Cupón aplicado: {cupon.Descripcion}"
+                    mensaje = $"Cupón aplicado: {cupon.Descripcion} - Descuento: S/ {descuento:0.00}",
+                    cuponInfo = new {
+                        descripcion = cupon.Descripcion,
+                        codigo = cupon.Codigo,
+                        expiracion = cupon.FechaExpiracion.ToString("dd/MM/yyyy")
+                    }
                 });
             }
             catch (Exception ex)
@@ -338,7 +361,82 @@ namespace Ezel_Market.Controllers
             }
         }
 
-        // ========== MÉTODOS DE PEDIDOS ==========
+        // 🔥 MÉTODO MEJORADO para obtener cupones disponibles
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ObtenerTodosCuponesDisponibles()
+        {
+            try
+            {
+                var usuarioId = GetUsuarioId();
+
+                if (string.IsNullOrEmpty(usuarioId))
+                {
+                    return Unauthorized(new { success = false, message = "Usuario no autenticado" });
+                }
+
+                // Obtener subtotal del carrito para validaciones
+                var carritoItems = await _context.Carrito
+                    .Where(ci => ci.UsuarioId == usuarioId)
+                    .Include(ci => ci.Inventario)
+                    .ToListAsync();
+                var subtotal = carritoItems.Sum(ci => ci.Inventario?.PrecioVentaMinorista * ci.Cantidad ?? 0);
+
+                // ✅ CORRECCIÓN: Incluir cupones expirados para mostrarlos como no disponibles
+                var cupones = await _context.Cupones
+                    .Where(c => c.Activo && c.FechaInicio <= DateTime.Now)
+                    .ToListAsync();
+                    
+                var cuponesDisponibles = new List<object>();
+
+                foreach (var cupon in cupones)
+                {
+                    var validacion = cupon.ValidarParaUsuario(usuarioId, subtotal);
+                
+                    cuponesDisponibles.Add(new
+                    {
+                        id = cupon.Id,
+                        codigo = cupon.Codigo,
+                        descripcion = cupon.Descripcion,
+                        tipo = cupon.TipoDescuento.ToString(),
+                        descuento = cupon.TipoDescuento == TipoDescuento.Porcentaje ?
+                                $"{cupon.PorcentajeDescuento}%" :
+                                $"S/ {cupon.ValorDescuento:0.00}",
+                        valorNumerico = cupon.TipoDescuento == TipoDescuento.Porcentaje ?
+                                    cupon.PorcentajeDescuento : cupon.ValorDescuento,
+                        expiracion = cupon.FechaExpiracion.ToString("dd/MM/yyyy"),
+                        diasRestantes = (cupon.FechaExpiracion - DateTime.Now).Days,
+                        minimoCompra = cupon.MontoMinimoCompra,
+                        minimoCompraTexto = cupon.MontoMinimoCompra > 0 ?
+                                        $"Mínimo: S/ {cupon.MontoMinimoCompra:0.00}" : "Sin mínimo de compra",
+                        usosDisponibles = cupon.UsosMaximos - cupon.UsosActuales,
+                        esValido = validacion.esValido,
+                        mensajeValidacion = validacion.esValido ? "Disponible" : validacion.mensaje,
+                        estado = cupon.Estado
+                    });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    cupones = cuponesDisponibles,
+                    totalCupones = cuponesDisponibles.Count,
+                    subtotalActual = subtotal
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener todos los cupones disponibles");
+                return Json(new
+                {
+                    success = false,
+                    message = "Error al cargar los cupones",
+                    error = ex.Message
+                });
+            }
+        }
+
+        // ========== MÉTODOS DE PEDIDOS CORREGIDOS ==========
 
         [HttpPost]
         [Authorize]
@@ -365,6 +463,7 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "El carrito está vacío" });
                 }
 
+                // ✅ CORRECCIÓN: Validar stock ANTES de procesar
                 var productosSinStock = new List<string>();
                 foreach (var item in carritoItems)
                 {
@@ -390,7 +489,8 @@ namespace Ezel_Market.Controllers
 
                 var subtotal = carritoItems.Sum(ci => ci.Inventario.PrecioVentaMinorista * ci.Cantidad);
         
-                var descuento = model.DescuentoAplicado;
+                // ✅ CORRECCIÓN: Validar que el descuento no sea mayor al subtotal
+                var descuento = Math.Min(model.DescuentoAplicado, subtotal);
                 var subtotalConDescuento = subtotal - descuento;
                 var igv = subtotalConDescuento * 0.18m;
                 var total = subtotalConDescuento + igv;
@@ -411,6 +511,7 @@ namespace Ezel_Market.Controllers
                 _context.Pedidos.Add(pedido);
                 await _context.SaveChangesAsync();
 
+                // Procesar items del carrito
                 foreach (var item in carritoItems)
                 {
                     var detalle = new PedidoDetalle
@@ -422,9 +523,11 @@ namespace Ezel_Market.Controllers
                     };
                     _context.PedidoDetalles.Add(detalle);
 
+                    // Actualizar stock
                     item.Inventario.Cantidad -= item.Cantidad;
                 }
 
+                // ✅ CORRECCIÓN: Incrementar usos del cupón SOLO si se aplicó uno
                 if (!string.IsNullOrEmpty(model.CodigoCupon))
                 {
                     var cupon = await _context.Cupones
@@ -432,9 +535,16 @@ namespace Ezel_Market.Controllers
                     if (cupon != null)
                     {
                         cupon.UsosActuales++;
+                        // Desactivar cupón si alcanzó el límite
+                        if (cupon.UsosActuales >= cupon.UsosMaximos)
+                        {
+                            cupon.Activo = false;
+                        }
+                        _context.Cupones.Update(cupon);
                     }
                 }
 
+                // Limpiar carrito
                 _context.Carrito.RemoveRange(carritoItems);
         
                 await _context.SaveChangesAsync();
