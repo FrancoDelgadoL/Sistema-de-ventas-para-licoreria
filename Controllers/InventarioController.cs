@@ -51,17 +51,25 @@ namespace Ezel_Market.Controllers
             return View(inventario);
         }
 
-        // GET: Inventario/Create
+        // GET: Inventario/Create - CORREGIDO
         public IActionResult Create()
         {
-            ViewBag.Categorias = new SelectList(_context.Categorias, "Id", "Nombre");
+            // ✅ CORRECCIÓN: Cambiar de SelectList a List<SelectListItem>
+            ViewBag.Categorias = _context.Categorias
+                .Select(c => new SelectListItem 
+                { 
+                    Value = c.Id.ToString(), 
+                    Text = c.Nombre 
+                })
+                .ToList();
+            
             return View();
         }
 
-        // POST: Inventario/Create (con imagen)
+        // POST: Inventario/Create (con imagen) - CORREGIDO
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NombreProducto,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo, List<int> CategoriasSeleccionadas)  // ✅ AGREGADO CategoriasSeleccionadas
+        public async Task<IActionResult> Create([Bind("Id,NombreProducto,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Marca,GradoAlcohol")] Inventario inventario, IFormFile ImagenArchivo, List<int> CategoriasSeleccionadas)
         {
             if (ModelState.IsValid)
             {
@@ -109,7 +117,15 @@ namespace Ezel_Market.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
+            // ✅ CORRECCIÓN: Recargar categorías también en POST cuando hay error
+            ViewBag.Categorias = _context.Categorias
+                .Select(c => new SelectListItem 
+                { 
+                    Value = c.Id.ToString(), 
+                    Text = c.Nombre 
+                })
+                .ToList();
+            
             return View(inventario);
         }
 
@@ -119,7 +135,6 @@ namespace Ezel_Market.Controllers
             if (id == null)
                 return NotFound();
 
-            // ✅ CORREGIDO: Agregar Include para las relaciones
             var inventario = await _context.Inventarios
                 .Include(i => i.CategoriaInventarios)
                 .FirstOrDefaultAsync(i => i.Id == id);
@@ -127,9 +142,15 @@ namespace Ezel_Market.Controllers
             if (inventario == null)
                 return NotFound();
 
-            ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
+            // ✅ CORRECCIÓN: Cambiar a List<SelectListItem>
+            ViewBag.Categorias = _context.Categorias
+                .Select(c => new SelectListItem 
+                { 
+                    Value = c.Id.ToString(), 
+                    Text = c.Nombre 
+                })
+                .ToList();
             
-            // ✅ PASAR CATEGORÍAS SELECCIONADAS A LA VISTA
             ViewBag.CategoriasSeleccionadas = inventario.CategoriaInventarios?.Select(ci => ci.CategoriaId).ToList() ?? new List<int>();
             
             return View(inventario);
@@ -138,7 +159,7 @@ namespace Ezel_Market.Controllers
         // POST: Inventario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo, List<int> CategoriasSeleccionadas)  // ✅ AGREGADO
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Imagen,Marca,GradoAlcohol")] Inventario inventario, IFormFile ImagenArchivo, List<int> CategoriasSeleccionadas)
         {
             if (id != inventario.Id)
             {
@@ -226,7 +247,15 @@ namespace Ezel_Market.Controllers
                 }
             }
 
-            ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
+            // ✅ CORRECCIÓN: Recargar categorías también en POST cuando hay error
+            ViewBag.Categorias = _context.Categorias
+                .Select(c => new SelectListItem 
+                { 
+                    Value = c.Id.ToString(), 
+                    Text = c.Nombre 
+                })
+                .ToList();
+            
             return View(inventario);
         }
 
@@ -252,7 +281,6 @@ namespace Ezel_Market.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            // ✅ CORREGIDO: Eliminar primero las relaciones
             var inventario = await _context.Inventarios
                 .Include(i => i.CategoriaInventarios)
                 .FirstOrDefaultAsync(i => i.Id == id);

@@ -13,13 +13,18 @@
         <span asp-validation-for="NombreProducto" class="text-danger"></span>
     </div>
     
-    <!-- ✅ CORREGIDO: Cambiar de select simple a checkboxes para múltiples categorías -->
+    <!-- ✅ CORRECCIÓN COMPLETA: Manejo seguro de categorías -->
     <div class="form-group">
         <label>Categorías</label>
         <div>
-            @if (ViewBag.Categorias != null)
+            @{
+                // ✅ CORRECCIÓN: Manejo seguro del ViewBag
+                var categorias = ViewBag.Categorias as List<SelectListItem>;
+            }
+            
+            @if (categorias != null && categorias.Any())
             {
-                foreach (var categoria in ViewBag.Categorias as List<SelectListItem>)
+                foreach (var categoria in categorias)
                 {
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="CategoriasSeleccionadas" value="@categoria.Value" id="categoria_@categoria.Value" />
@@ -31,7 +36,7 @@
             }
             else
             {
-                <p class="text-muted">No hay categorías disponibles</p>
+                <p class="text-warning">No hay categorías disponibles en el sistema</p>
             }
         </div>
     </div>
@@ -67,6 +72,18 @@
             <input asp-for="PrecioVentaMayorista" class="form-control" type="number" min="0" step="0.01" />
         </div>
         <span asp-validation-for="PrecioVentaMayorista" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Marca"></label>
+        <input asp-for="Marca" class="form-control" />
+        <span asp-validation-for="Marca" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GradoAlcohol"></label>
+        <input asp-for="GradoAlcohol" class="form-control" type="number" step="0.1" min="0" max="100" />
+        <span asp-validation-for="GradoAlcohol" class="text-danger"></span>
     </div>
 
     <!-- Campo para subir imagen -->
