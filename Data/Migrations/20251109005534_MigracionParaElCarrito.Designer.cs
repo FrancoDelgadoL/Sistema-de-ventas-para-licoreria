@@ -3,6 +3,7 @@ using System;
 using Ezel_Market.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ezel_Market.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109005534_MigracionParaElCarrito")]
+    partial class MigracionParaElCarrito
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -29,7 +32,10 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<DateTime>("FechaAgregado")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("InventarioId")
+                    b.Property<int?>("InventarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductoId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("UsuarioId")
@@ -39,7 +45,7 @@ namespace Ezel_Market.Data.Migrations
 
                     b.HasIndex("InventarioId");
 
-                    b.HasIndex("UsuarioId", "InventarioId")
+                    b.HasIndex("UsuarioId", "ProductoId")
                         .IsUnique();
 
                     b.ToTable("Carrito");
@@ -51,9 +57,6 @@ namespace Ezel_Market.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CategoriasId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Descripcion")
                         .HasColumnType("TEXT");
 
@@ -63,9 +66,7 @@ namespace Ezel_Market.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoriasId");
-
-                    b.ToTable("Categorias");
+                    b.ToTable("Categoria");
 
                     b.HasData(
                         new
@@ -212,6 +213,9 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("CategoriasId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("FechaIngreso")
                         .HasColumnType("TEXT");
 
@@ -239,6 +243,8 @@ namespace Ezel_Market.Data.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriasId");
 
                     b.ToTable("Inventario");
                 });
@@ -290,7 +296,7 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("InventarioId")
+                    b.Property<int?>("InventarioId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("PedidoId")
@@ -298,6 +304,9 @@ namespace Ezel_Market.Data.Migrations
 
                     b.Property<decimal>("PrecioUnitario")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -547,17 +556,9 @@ namespace Ezel_Market.Data.Migrations
                 {
                     b.HasOne("Ezel_Market.Models.Inventario", "Inventario")
                         .WithMany()
-                        .HasForeignKey("InventarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Ezel_Market.Models.Usuarios", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId");
+                        .HasForeignKey("InventarioId");
 
                     b.Navigation("Inventario");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Ezel_Market.Models.HistorialInventario", b =>
@@ -586,9 +587,7 @@ namespace Ezel_Market.Data.Migrations
                 {
                     b.HasOne("Ezel_Market.Models.Inventario", "Inventario")
                         .WithMany()
-                        .HasForeignKey("InventarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("InventarioId");
 
                     b.HasOne("Ezel_Market.Models.Pedido", "Pedido")
                         .WithMany("Detalles")

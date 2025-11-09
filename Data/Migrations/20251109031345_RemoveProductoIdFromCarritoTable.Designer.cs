@@ -3,6 +3,7 @@ using System;
 using Ezel_Market.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ezel_Market.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109031345_RemoveProductoIdFromCarritoTable")]
+    partial class RemoveProductoIdFromCarritoTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -51,9 +54,6 @@ namespace Ezel_Market.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CategoriasId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Descripcion")
                         .HasColumnType("TEXT");
 
@@ -63,9 +63,7 @@ namespace Ezel_Market.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoriasId");
-
-                    b.ToTable("Categorias");
+                    b.ToTable("Categoria");
 
                     b.HasData(
                         new
@@ -212,6 +210,9 @@ namespace Ezel_Market.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("CategoriasId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("FechaIngreso")
                         .HasColumnType("TEXT");
 
@@ -239,6 +240,8 @@ namespace Ezel_Market.Data.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriasId");
 
                     b.ToTable("Inventario");
                 });

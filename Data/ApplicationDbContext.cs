@@ -18,6 +18,11 @@ namespace Ezel_Market.Data
 
         public DbSet<Cupon> Cupones { get; set; }
 
+        //Pedidos
+        public DbSet<Carrito> Carrito { get; set; }
+        public DbSet<Pedido> Pedidos { get; set; }
+        public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
+
         // HISTORIAL INVENTARIO
         public DbSet<HistorialInventario> HistorialInventarios { get; set; }
 
@@ -29,6 +34,10 @@ namespace Ezel_Market.Data
             base.OnModelCreating(builder);
             builder.Entity<Usuarios>().ToTable("t_usuario");
 
+            builder.Entity<Carrito>()
+                .HasIndex(ci => new { ci.UsuarioId, ci.InventarioId })
+                .IsUnique();
+            
             // SEED DATA PARA ROLES
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole

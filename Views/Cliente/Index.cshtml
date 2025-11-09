@@ -1,311 +1,1071 @@
-@* PASO 1: Especificar el ViewModel que esta vista recibe *@
-@using System.Linq
 @model Ezel_Market.Models.ClienteCatalogoViewModel
-
 @{
     ViewData["Title"] = "Catálogo de Productos";
 }
-@{
-    Layout = null;
-}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo - Ezel Market</title>
-    
-    <!-- Enlaces CSS (los que estaban en _Layout.cshtml) -->
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    
-    <!-- Tu CSS personalizado para esta página -->
-    <link rel="stylesheet" href="~/css/Cliente/VistaInicio.css" />
-</head>
-<body>
-
-    @* Este es TU header (el granate de la foto) *@
-    @* Reemplaza tu header por este *@
-    <header class="navbar">
-        <div class="nav-left">
-            <h1 class="logo">Ezel Market</h1>
-        </div>
-
-        <div class="nav-right">
-            @* 1. Dejamos el botón del carrito tal como está *@
-            <button id="btnCarrito" class="carrito-btn" aria-haspopup="dialog" aria-controls="carritoModal">
-                🛒 <span id="contadorCarrito">0</span>
-            </button>
-
-            @* 2. Eliminamos el botón "Mi Perfil" estático *@
-
-            @* 3. Envolvemos el LoginPartial para darle estilo *@
-            <div class="login-partial-container">
-                <partial name="_LoginPartial" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<div class="container-fluid py-4">
+    <!-- Header con Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-section">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h2 class="mb-0">🍻 Nuestro Catálogo</h2>
+                        <p class="text-muted mb-0">Encuentra tus bebidas favoritas</p>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="categoria-filter">
+                            <option value="0">Todas las categorías</option>
+                            @foreach (var categoria in Model.Categorias)
+                            {
+                                <option value="@categoria.Id">@categoria.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <!-- Botón del Carrito -->
+                        <button class="btn btn-outline-primary position-relative cart-icon" id="carrito-btn">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="cart-badge" id="carrito-contador" style="display: none;">0</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main class="container">
-        <section class="catalogo-header">
-            <h2>Catálogo de Productos</h2>
-        </section>
-
-        <!-- FILTROS -->
-            <section class="filtros-container">
-                
-                @* 💡 NUEVO: Contenedor para el buscador y el botón 'X' *@
-                <div class="buscador-container">
-                    <input id="buscador" type="text" placeholder="Buscar producto..." class="filtro-input" />
-                    
-                    @* 💡 NUEVO: Botón 'X' para limpiar el buscador *@
-                    <button id="btnResetBuscador" class="reset-buscador-btn" type="button" title="Limpiar búsqueda">
-                        &times; @* Este es el caracter 'X' (multiplicación) *@
-                    </button>
-                </div>
-                
-                <div class="categorias-filtro-box">
-                <h4>Filtrar por Categoría</h4>
-                
-                @* Nuevo contenedor para las categorías *@
-                <div id="categoriasCheckboxContainer" class="checkbox-list">
-                    @if (Model.Categorias != null && Model.Categorias.Any())
+    <!-- Grid de Productos -->
+    <div class="product-grid" id="productos-container">
+        @foreach (var producto in Model.Productos)
+        {
+            <div class="card product-card" data-categoria="@producto.CategoriasId">
+                <div class="position-relative">
+                    <img src="@(string.IsNullOrEmpty(producto.Imagen) ? "/images/placeholder.jpg" : producto.Imagen)" 
+                         class="card-img-top product-image" alt="@producto.NombreProducto">
+                    <span class="badge bg-success category-badge">@producto.Categoria?.Nombre</span>
+                    @if (producto.Cantidad <= 5)
                     {
-                        @foreach (var cat in Model.Categorias)
-                        {
-                            <label class="checkbox-label">
-                                <input type="checkbox" 
-                                    name="categoriaFiltro" 
-                                    value="@cat.Nombre" 
-                                    class="categoria-checkbox" />
-                                @cat.Nombre
-                            </label>
-                        }
+                        <span class="badge bg-warning stock-badge">Poco Stock</span>
                     }
                 </div>
                 
-                @* Botón de Reset *@
-                <button id="btnResetCategorias" class="reset-btn" title="Limpiar categorías seleccionadas">
-                    <i class="fas fa-times"></i>
+                <!-- SECCIÓN MEJORADA DEL CARD-BODY -->
+                <div class="card-body">
+                    <h5 class="card-title">@producto.NombreProducto</h5>
+                    <p class="card-text text-muted small">@producto.Marca</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="price">S/ @producto.PrecioVentaMinorista.ToString("0.00")</span>
+                        <span class="badge @(producto.Cantidad > 10 ? "bg-success" : producto.Cantidad > 0 ? "bg-warning" : "bg-danger")">
+                            Stock: @producto.Cantidad
+                        </span>
+                    </div>
+                    <div class="btn-group w-100">
+                        <button class="btn btn-ver btn-sm btn-ver-detalles" 
+                                data-id="@producto.Id"
+                                data-nombre="@producto.NombreProducto">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn btn-agregar btn-sm btn-agregar-carrito @(producto.Cantidad == 0 ? "disabled" : "")"
+                                data-id="@producto.Id"
+                                data-nombre="@producto.NombreProducto"
+                                data-precio="@producto.PrecioVentaMinorista"
+                                data-stock="@producto.Cantidad"
+                                data-imagen="@(string.IsNullOrEmpty(producto.Imagen) ? "/images/placeholder.jpg" : producto.Imagen)"
+                                @(producto.Cantidad == 0 ? "disabled" : "")>
+                            <i class="fas fa-cart-plus"></i> 
+                            @(producto.Cantidad == 0 ? "Sin Stock" : "Agregar")
+                        </button>
+                    </div>
+                </div>
+                <!-- FIN DE SECCIÓN MEJORADA -->
+            </div>
+        }
+    </div>
+
+    <!-- Mensaje cuando no hay productos -->
+    <div id="no-products" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4>No se encontraron productos</h4>
+        <p class="text-muted">Intenta con otra categoría o criterio de búsqueda</p>
+    </div>
+</div>
+
+<!-- Modal para Detalles del Producto -->
+<div class="modal fade" id="modalDetalles" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalles-content">
+                <!-- Contenido cargado por JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-agregar-desde-detalles">Agregar al Carrito</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar al Carrito -->
+<div class="modal fade" id="modalAgregarCarrito" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar al Carrito</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-agregar-carrito">
+                    <input type="hidden" id="producto-id">
+                    <div class="text-center mb-4">
+                        <img id="producto-imagen-modal" src="" class="img-fluid rounded" style="max-height: 150px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Producto</label>
+                        <input type="text" class="form-control" id="producto-nombre" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Precio unitario</label>
+                        <input type="text" class="form-control" id="producto-precio" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Stock disponible</label>
+                        <input type="text" class="form-control" id="producto-stock" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cantidad</label>
+                        <div class="quantity-controls">
+                            <button type="button" class="btn btn-outline-secondary quantity-btn" id="btn-decrementar">-</button>
+                            <input type="number" class="form-control quantity-input" id="cantidad" value="1" min="1" max="1">
+                            <button type="button" class="btn btn-outline-secondary quantity-btn" id="btn-incrementar">+</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Total</label>
+                        <input type="text" class="form-control fw-bold text-success" id="total-precio" readonly>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-confirmar-agregar">
+                    <i class="fas fa-check"></i> Confirmar
                 </button>
             </div>
-        </section>
-
-        <!-- PRODUCTOS -->
-        <section class="catalogo-grid">
-            
-            @* PASO 5: Reemplazar el @for estático por un @foreach dinámico *@
-            @if (Model.Productos != null && Model.Productos.Any())
-            {
-                @foreach (var prod in Model.Productos)
-                {
-                    @* 💡 CORRECCIÓN: Usamos string.Join para crear una lista de categorías separadas por coma *@
-                        // Asume que prod.Categorias es ICollection<Categorias>
-                    var listaCategorias = prod.Categorias != null ? string.Join(",", prod.Categorias.Select(c => c.Nombre)) : "";
-
-                    <article class="producto-card" 
-                            data-categoria="@listaCategorias" 
-                            data-nombre="@prod.NombreProducto" 
-                            data-precio="@prod.PrecioVentaMinorista" 
-                            data-img="@Url.Content(prod.Imagen)">
-                        
-                        @* ... el resto de la tarjeta del producto es igual ... *@
-                        <div class="card-top">
-                            @* (Lógica de descuento si la tienes) *@
-                        </div>
-                        
-                        <img src="@Url.Content(prod.Imagen)" alt="@prod.NombreProducto" class="producto-img" />
-                        <h4 class="producto-nombre">@prod.NombreProducto</h4>
-                        
-                        <div class="precios">
-                            <span class="precio-actual">S/ @prod.PrecioVentaMinorista.ToString("F2")</span>
-                        </div>
-                        
-                        <div class="card-actions">
-                            <button class="btn-agregar" title="Agregar rápido">+</button>
-                            <button class="btn-ver" title="Ver detalles">Ver</button>
-                        </div>
-                    </article>
-                }
-            }
-            else
-            {
-                <p>No se encontraron productos.</p>
-            }
-        </section>
-    </main>
-
-    <!-- ... Tus Modales (Producto y Carrito) van aquí ... -->
-    <!-- MODAL PRODUCTO (centrado) -->
-    <div id="productoModal" class="modal" role="dialog" aria-hidden="true">
-         <!-- ... contenido del modal ... -->
+        </div>
     </div>
+</div>
 
-    <!-- MODAL CARRITO (centrado) -->
-    <div id="carritoModal" class="modal carrito-modal" role="dialog" aria-hidden="true">
-        <!-- ... contenido del modal ... -->
+<!-- Modal del Carrito -->
+<div class="modal fade" id="modalCarrito" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🛒 Mi Carrito de Compras</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="carrito-vacio" class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h5>Tu carrito está vacío</h5>
+                    <p class="text-muted">Agrega algunos productos para continuar</p>
+                </div>
+                
+                <div id="carrito-contenido" style="display: none;">
+                    <!-- Items del Carrito -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="carrito-items">
+                                <!-- Items cargados por JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Cupón y Resumen -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">🎫 Aplicar Cupón</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="codigo-cupon" placeholder="Ingresa tu código">
+                                        <button class="btn btn-outline-primary" type="button" id="btn-aplicar-cupon">Aplicar</button>
+                                    </div>
+                                    <div id="cupon-mensaje" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card summary-card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">📊 Resumen de Compra</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span id="carrito-subtotal">S/ 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Descuento:</span>
+                                        <span id="carrito-descuento" class="text-success">S/ 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>IGV (18%):</span>
+                                        <span id="carrito-igv">S/ 0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between fw-bold fs-5">
+                                        <span>Total:</span>
+                                        <span id="carrito-total" class="text-primary">S/ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir comprando</button>
+                <button type="button" class="btn btn-danger" id="btn-limpiar-carrito" style="display: none;">
+                    <i class="fas fa-trash"></i> Limpiar Carrito
+                </button>
+                <button type="button" class="btn btn-success" id="btn-proceder-pago" style="display: none;">
+                    <i class="fas fa-credit-card"></i> Proceder al Pago
+                </button>
+            </div>
+        </div>
     </div>
+</div>
 
+<!-- Modal de Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">💳 Proceso de Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-pago">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">📍 Dirección de Envío</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Dirección completa *</label>
+                                <textarea class="form-control" id="direccion-envio" rows="3" placeholder="Ingresa tu dirección completa..." required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Referencia</label>
+                                <input type="text" class="form-control" id="referencia" placeholder="Ej: Frente al parque...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">💳 Método de Pago</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="metodo-pago" value="Tarjeta" checked>
+                                <label class="form-check-label">💳 Tarjeta de Crédito/Débito</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="metodo-pago" value="PayPal">
+                                <label class="form-check-label">🔵 PayPal</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="metodo-pago" value="Efectivo">
+                                <label class="form-check-label">💰 Pago en Efectivo</label>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6 class="mb-3">📋 Resumen del Pedido</h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div id="resumen-pedido">
+                                            <!-- Resumen cargado por JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btn-confirmar-pedido">
+                    <i class="fas fa-check-circle"></i> Confirmar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- SCRIPTS -->
-    @* PASO 6: (MUY IMPORTANTE) Corregir el JavaScript para que los filtros funcionen juntos *@
+@section Scripts {
     <script>
-        // ---------- Estado ----------
-        let carrito = []; // {id, nombre, precio, img, cantidad}
-        const IGV_RATE = 0.18;
+        // Variables globales
+        let carritoData = {};
+        let descuentoAplicado = 0;
+        let cuponAplicado = '';
+        let productoActual = null;
 
-        // Selectores 
-        let productoCards;
-        const contadorCarrito = document.getElementById('contadorCarrito');
+        // ========== DEBUGGING INICIAL ==========
+        console.log("=== INICIANDO SCRIPT CLIENTE ===");
+        console.log("Bootstrap disponible:", typeof bootstrap !== 'undefined');
+        console.log("Modal element:", document.getElementById('modalCarrito'));
+        console.log("Carrito button:", document.getElementById('carrito-btn'));
 
-        // ... (resto de selectores de modales que debes tener definidos) ...
-        const productoModal = document.getElementById('productoModal');
-        const modalImg = document.getElementById('modal-img');
-        const modalNombre = document.getElementById('modal-nombre');
-        const carritoModal = document.getElementById('carritoModal');
-        const listaCarrito = document.getElementById('listaCarrito');
-        // ... etc ...
-
-        // Selectores para el FILTRO
-        const buscadorInput = document.getElementById('buscador');
-        // ✅ CORREGIDO: Usamos la nueva colección de checkboxes
-        const btnResetBuscador = document.getElementById('btnResetBuscador');
-        const categoriaCheckboxes = document.querySelectorAll('.categoria-checkbox'); 
-        const btnResetCategorias = document.getElementById('btnResetCategorias');
-
-
-        // ---------- Helpers ----------
-        function actualizarContador() {
-            const totalCantidad = carrito.reduce((s, it) => s + it.cantidad, 0);
-            contadorCarrito.textContent = totalCantidad;
-        }
-
-        function formatearPrecio(n) {
-            return `S/ ${n.toFixed(2)}`;
-        }
-        
-        // ... (resto de funciones helper: calcularTotales, abrirModal, cerrarModal, Lógica de Modal Producto, Lógica de Carrito, Lógica de simulación de pago) ...
-        
-        // Listener del buscador (input)
-        buscadorInput.addEventListener('input', () => {
+        // ========== INICIALIZACIÓN MEJORADA ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("=== DOM CARGADO - INICIANDO ===");
             
-            // 1. Lógica para mostrar/ocultar la 'X'
-            if (buscadorInput.value.length > 0) {
-                btnResetBuscador.style.display = 'block'; // 👈 AQUÍ SE MUESTRA
-            } else {
-                btnResetBuscador.style.display = 'none'; // 👈 AQUÍ SE OCULTA
-            }
+            // Verificar que todos los elementos críticos existan
+            const elementosCriticos = [
+                'carrito-btn', 'modalCarrito', 'modalAgregarCarrito', 
+                'btn-confirmar-agregar', 'categoria-filter'
+            ];
             
-            // 2. Lógica de filtrado
-            aplicarFiltros();
+            elementosCriticos.forEach(id => {
+                const element = document.getElementById(id);
+                console.log(`Elemento ${id}:`, element ? "EXISTE" : "NO EXISTE");
+            });
+
+            inicializarEventListeners();
+            cargarCarrito();
         });
-        
-        // ---------- LÓGICA DE FILTRADO (MUCHOS A MUCHOS) ----------
-        function aplicarFiltros() {
-            const queryBusqueda = buscadorInput.value.toLowerCase();
+
+        function inicializarEventListeners() {
+            console.log("=== INICIALIZANDO EVENT LISTENERS ===");
             
-            // 💡 LÓGICA: Obtener un array de nombres de categorías seleccionadas
-            const categoriasSeleccionadas = Array.from(categoriaCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value); // Obtiene el valor (nombre de la categoría)
+            // Botón del carrito
+            const carritoBtn = document.getElementById('carrito-btn');
+            if (carritoBtn) {
+                carritoBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log("🛒 Click en botón carrito");
+                    cargarCarrito();
+                    abrirModal('modalCarrito');
+                });
+            } else {
+                console.error("❌ NO SE ENCONTRÓ carrito-btn");
+            }
 
-            // Recorremos todas las tarjetas CADA vez que un filtro cambia
-            document.querySelectorAll('.producto-card').forEach(card => {
-                const nombre = card.dataset.nombre.toLowerCase();
-                
-                // 💡 LÓGICA: Obtiene el string de categorías (ej: "Bebidas,Snacks") y lo convierte en array
-                // .split(',') maneja productos sin categorías asignadas si listaCategorias es ""
-                const cardCategorias = card.dataset.categoria.split(','); 
+            // Botones "Agregar al carrito"
+            const botonesAgregar = document.querySelectorAll('.btn-agregar-carrito');
+            console.log(`🔘 Botones agregar encontrados: ${botonesAgregar.length}`);
+            
+            botonesAgregar.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const inventarioId = this.getAttribute('data-id'); // ✅ Cambiado a inventarioId
+                    console.log(`📦 Click en agregar producto: ${inventarioId}`);
+                    abrirModalCantidad(inventarioId);
+                });
+            });
 
-                // 1. ¿Pasa el filtro de categoría?
-                // Si no hay categorías seleccionadas (length === 0), todos pasan.
-                // Si hay seleccionadas, el producto debe tener AL MENOS UNA coincidencia.
-                const pasaCategoria = (categoriasSeleccionadas.length === 0) || 
-                    categoriasSeleccionadas.some(selectedCat => cardCategorias.includes(selectedCat));
-                
-                // 2. ¿Pasa el filtro de búsqueda?
-                const pasaBusqueda = nombre.includes(queryBusqueda);
+            // Botones "Ver detalles"
+            const botonesVer = document.querySelectorAll('.btn-ver-detalles');
+            console.log(`👁️ Botones ver encontrados: ${botonesVer.length}`);
+            
+            botonesVer.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const inventarioId = this.getAttribute('data-id'); // ✅ Cambiado a inventarioId
+                    console.log(`🔍 Click en ver detalles: ${inventarioId}`);
+                    cargarDetallesProducto(inventarioId);
+                });
+            });
 
-                // 3. Solo se muestra si pasa AMBOS filtros
-                if (pasaCategoria && pasaBusqueda) {
-                    card.style.display = ''; // Mostrar
-                } else {
-                    card.style.display = 'none'; // Ocultar
+            // Filtro por categoría
+            const filtroCategoria = document.getElementById('categoria-filter');
+            if (filtroCategoria) {
+                filtroCategoria.addEventListener('change', filtrarPorCategoria);
+            }
+
+            // Inicializar otros listeners
+            inicializarListenersModales();
+        }
+
+        function inicializarListenersModales() {
+            // Confirmar agregar al carrito
+            const btnConfirmar = document.getElementById('btn-confirmar-agregar');
+            if (btnConfirmar) {
+                btnConfirmar.addEventListener('click', confirmarAgregarAlCarrito);
+            }
+
+            // Controles de cantidad
+            document.getElementById('btn-incrementar')?.addEventListener('click', incrementarCantidad);
+            document.getElementById('btn-decrementar')?.addEventListener('click', decrementarCantidad);
+
+            // Cupón
+            document.getElementById('btn-aplicar-cupon')?.addEventListener('click', aplicarCupon);
+
+            // Pago
+            document.getElementById('btn-proceder-pago')?.addEventListener('click', procederPago);
+            document.getElementById('btn-confirmar-pedido')?.addEventListener('click', confirmarPedido);
+            document.getElementById('btn-limpiar-carrito')?.addEventListener('click', limpiarCarrito);
+
+            // Agregar desde detalles
+            document.getElementById('btn-agregar-desde-detalles')?.addEventListener('click', function() {
+                if (productoActual) {
+                    console.log("🔄 Agregar desde detalles:", productoActual.id);
+                    bootstrap.Modal.getInstance(document.getElementById('modalDetalles'))?.hide();
+                    abrirModalCantidad(productoActual.id);
                 }
             });
         }
 
-    // ---------- Inicialización (Event Listeners) ----------
-    document.addEventListener('DOMContentLoaded', function () {
-        
-        // 💡 CORREGIDO: Listener del buscador (input)
-        // (Este listener ahora maneja la 'X' Y el filtrado)
-        buscadorInput.addEventListener('input', () => {
-            // 1. Lógica para mostrar/ocultar la 'X'
-            if (buscadorInput.value.length > 0) {
-                btnResetBuscador.style.display = 'block';
+        // ========== FUNCIONES DE MODALES ==========
+
+        function abrirModal(modalId) {
+            console.log(`🎯 Abriendo modal: ${modalId}`);
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+                console.log(`✅ Modal ${modalId} abierto`);
             } else {
-                btnResetBuscador.style.display = 'none';
+                console.error(`❌ No se pudo encontrar modal: ${modalId}`);
+            }
+        }
+
+        // ========== FUNCIONES DEL CATÁLOGO ==========
+
+        function filtrarPorCategoria() {
+            const categoriaId = this.value;
+            console.log(`🎛️ Filtrando por categoría: ${categoriaId}`);
+            
+            const productos = document.querySelectorAll('.product-card');
+            let productosVisibles = 0;
+            
+            productos.forEach(producto => {
+                if (categoriaId === '0' || producto.getAttribute('data-categoria') === categoriaId) {
+                    producto.style.display = 'block';
+                    productosVisibles++;
+                } else {
+                    producto.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('no-products').style.display = 
+                productosVisibles === 0 ? 'block' : 'none';
+            
+            console.log(`👀 Productos visibles: ${productosVisibles}`);
+        }
+
+        // ========== FUNCIONES DE DETALLES DEL PRODUCTO ==========
+
+        function cargarDetallesProducto(inventarioId) { // ✅ Cambiado parámetro
+            console.log(`📋 Cargando detalles del producto: ${inventarioId}`);
+            
+            productoActual = { id: inventarioId }; // ✅ Cambiado a inventarioId
+            
+            fetch(`/Cliente/ObtenerDetallesProducto?id=${inventarioId}`) // ✅ Cambiado a inventarioId
+                .then(response => {
+                    console.log(`📡 Respuesta detalles: ${response.status}`);
+                    if (!response.ok) throw new Error('Error al obtener detalles');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("✅ Detalles cargados:", data);
+                    mostrarDetallesProducto(data);
+                })
+                .catch(error => {
+                    console.error('❌ Error detalles:', error);
+                    mostrarAlerta('Error al cargar los detalles del producto', 'error');
+                });
+        }
+
+        function mostrarDetallesProducto(data) {
+            document.getElementById('detalles-content').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <img src="${data.imagenUrl || '/images/placeholder.jpg'}" 
+                             class="img-fluid rounded" alt="${data.nombre}" 
+                             style="max-height: 300px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-6">
+                        <h4>${data.nombre}</h4>
+                        <p class="text-muted">${data.descripcion}</p>
+                        <div class="mb-3">
+                            <span class="badge bg-primary fs-6">S/ ${data.precio.toFixed(2)}</span>
+                            <span class="badge bg-success ms-2">Stock: ${data.stock}</span>
+                        </div>
+                        <div class="mt-4">
+                            <h6>📋 Características:</h6>
+                            <div class="bg-light p-3 rounded">
+                                ${data.caracteristicas || 'No hay características adicionales disponibles.'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            abrirModal('modalDetalles');
+        }
+
+        // ========== FUNCIONES DEL MODAL AGREGAR AL CARRITO ==========
+
+        function abrirModalCantidad(inventarioId) { // ✅ Cambiado parámetro
+            console.log(`📦 Abriendo modal cantidad para producto: ${inventarioId}`);
+            
+            const btn = document.querySelector(`.btn-agregar-carrito[data-id="${inventarioId}"]`); // ✅ Cambiado a inventarioId
+            if (!btn) {
+                console.error(`❌ No se encontró botón para producto: ${inventarioId}`);
+                return;
             }
             
-            // 2. Lógica de filtrado
-            aplicarFiltros();
-        });
-        
-        // 💡 FALTANTE: Listener para el botón 'X' del buscador
-        btnResetBuscador.addEventListener('click', () => {
-            buscadorInput.value = ''; // Limpia el input
-            btnResetBuscador.style.display = 'none'; // Oculta la 'X'
-            aplicarFiltros(); // Vuelve a filtrar (mostrando todo)
-        });
+            const productoNombre = btn.getAttribute('data-nombre');
+            const productoPrecio = parseFloat(btn.getAttribute('data-precio'));
+            const productoStock = parseInt(btn.getAttribute('data-stock'));
+            const productoImagen = btn.getAttribute('data-imagen');
+            
+            console.log(`📊 Producto datos:`, { productoNombre, productoPrecio, productoStock });
+            
+            // Llenar modal
+            document.getElementById('producto-id').value = inventarioId; // ✅ Cambiado a inventarioId
+            document.getElementById('producto-nombre').value = productoNombre;
+            document.getElementById('producto-precio').value = `S/ ${productoPrecio.toFixed(2)}`;
+            document.getElementById('producto-stock').value = productoStock;
+            document.getElementById('producto-imagen-modal').src = productoImagen || '/images/placeholder.jpg';
+            
+            // Configurar cantidad
+            const cantidadInput = document.getElementById('cantidad');
+            cantidadInput.max = productoStock;
+            cantidadInput.value = 1;
+            cantidadInput.min = 1;
+            
+            // Actualizar evento input
+            cantidadInput.oninput = calcularTotalAgregar;
+            
+            calcularTotalAgregar();
+            abrirModal('modalAgregarCarrito');
+        }
 
-        // Listener para CADA CHECKBOX
-        categoriaCheckboxes.forEach(cb => {
-            cb.addEventListener('change', aplicarFiltros);
-        });
+        function incrementarCantidad() {
+            const input = document.getElementById('cantidad');
+            const max = parseInt(input.max);
+            const currentValue = parseInt(input.value) || 1;
+            if (currentValue < max) {
+                input.value = currentValue + 1;
+                calcularTotalAgregar();
+            }
+        }
 
-        // Listener para Botón de Resetear Categorías
-        btnResetCategorias.addEventListener('click', () => {
-            categoriaCheckboxes.forEach(cb => {
-                cb.checked = false; // Desmarcar todos
+        function decrementarCantidad() {
+            const input = document.getElementById('cantidad');
+            const currentValue = parseInt(input.value) || 1;
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                calcularTotalAgregar();
+            }
+        }
+
+        function calcularTotalAgregar() {
+            const cantidad = parseInt(document.getElementById('cantidad').value) || 0;
+            const precioText = document.getElementById('producto-precio').value;
+            const precio = parseFloat(precioText.replace('S/ ', '')) || 0;
+            const total = cantidad * precio;
+            
+            document.getElementById('total-precio').value = `S/ ${total.toFixed(2)}`;
+        }
+
+        function confirmarAgregarAlCarrito() {
+            const inventarioId = document.getElementById('producto-id').value; // ✅ Cambiado a inventarioId
+            const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+            
+            console.log(`🛒 Confirmando agregar: Inventario ${inventarioId}, Cantidad ${cantidad}`); // ✅ Cambiado mensaje
+            
+            if (!inventarioId || cantidad < 1) {
+                mostrarAlerta('Cantidad inválida', 'error');
+                return;
+            }
+            
+            const data = {
+                inventarioId: parseInt(inventarioId), // ✅ Cambiado a inventarioId
+                cantidad: cantidad
+            };
+            
+            console.log("📤 Enviando datos:", data);
+            
+            fetch('/Cliente/AgregarAlCarrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log(`📡 Respuesta agregar: ${response.status}`);
+                if (!response.ok) {
+                    return response.text().then(text => { 
+                        throw new Error(text || 'Error en el servidor'); 
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("✅ Respuesta agregar:", data);
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalAgregarCarrito'))?.hide();
+                    cargarCarrito();
+                    mostrarAlerta(data.message, 'success');
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error agregar:', error);
+                mostrarAlerta(error.message || 'Error al agregar el producto al carrito', 'error');
             });
-            aplicarFiltros(); // Re-aplicar el filtro (mostrando todo)
-        });
-        
-        // Asignamos listeners a las tarjetas de producto
-        productoCards = document.querySelectorAll('.producto-card');
+        }
 
-        productoCards.forEach(card => {
-            const nombre = card.dataset.nombre;
-            const precio = parseFloat(card.dataset.precio || 0);
-            const img = card.dataset.img;
+        // ========== FUNCIONES DEL CARRITO ==========
 
-            // Click en el botón '+' (agrega rápido)
-            card.querySelector('.btn-agregar').addEventListener('click', (e) => {
-                e.stopPropagation();
-                agregarAlCarrito({ nombre, precio, img, cantidad: 1 });
+        function cargarCarrito() {
+            console.log("🛒 Cargando carrito...");
+            
+            fetch('/Cliente/ObtenerCarrito')
+                .then(response => {
+                    console.log(`📡 Respuesta carrito: ${response.status}`);
+                    if (response.status === 401) throw new Error('Unauthorized');
+                    if (!response.ok) throw new Error('Error al cargar el carrito');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("✅ Carrito cargado:", data);
+                    carritoData = data;
+                    renderizarCarrito();
+                })
+                .catch(error => {
+                    console.error('❌ Error cargando carrito:', error);
+                    if (error.message === 'Unauthorized') {
+                        mostrarAlerta('Debes iniciar sesión para usar el carrito', 'warning');
+                    } else {
+                        mostrarAlerta('Error al cargar el carrito', 'error');
+                    }
+                });
+        }
+
+        function renderizarCarrito() {
+            const carritoVacio = document.getElementById('carrito-vacio');
+            const carritoContenido = document.getElementById('carrito-contenido');
+            const carritoItems = document.getElementById('carrito-items');
+            const btnProcederPago = document.getElementById('btn-proceder-pago');
+            const btnLimpiarCarrito = document.getElementById('btn-limpiar-carrito');
+            
+            if (carritoData.items && carritoData.items.length > 0) {
+                carritoVacio.style.display = 'none';
+                carritoContenido.style.display = 'block';
+                btnProcederPago.style.display = 'block';
+                btnLimpiarCarrito.style.display = 'block';
+                
+                carritoItems.innerHTML = '';
+                
+                carritoData.items.forEach(item => {
+                    const subtotal = item.precio * item.cantidad;
+                    
+                    carritoItems.innerHTML += `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="${item.imagenUrl || '/images/placeholder.jpg'}" 
+                                         alt="${item.nombre}" 
+                                         class="cart-item-image me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold">${item.nombre}</div>
+                                        <small class="text-muted">${item.categoria}</small>
+                                        <div class="text-muted small">Stock: ${item.stockDisponible}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle">S/ ${item.precio.toFixed(2)}</td>
+                            <td class="align-middle">
+                                <div class="quantity-controls d-flex align-items-center">
+                                    <button class="btn btn-outline-secondary btn-sm btn-restar" 
+                                            data-id="${item.id}">-</button>
+                                    <span class="mx-2 fw-bold">${item.cantidad}</span>
+                                    <button class="btn btn-outline-secondary btn-sm btn-sumar" 
+                                            data-id="${item.id}">+</button>
+                                </div>
+                            </td>
+                            <td class="align-middle fw-bold">S/ ${subtotal.toFixed(2)}</td>
+                            <td class="align-middle">
+                                <button class="btn btn-danger btn-sm btn-eliminar" data-id="${item.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                // Calcular totales con descuento
+                const subtotalConDescuento = carritoData.subtotal - descuentoAplicado;
+                const igv = subtotalConDescuento * 0.18;
+                const total = subtotalConDescuento + igv;
+                
+                document.getElementById('carrito-subtotal').textContent = `S/ ${carritoData.subtotal.toFixed(2)}`;
+                document.getElementById('carrito-descuento').textContent = `-S/ ${descuentoAplicado.toFixed(2)}`;
+                document.getElementById('carrito-igv').textContent = `S/ ${igv.toFixed(2)}`;
+                document.getElementById('carrito-total').textContent = `S/ ${total.toFixed(2)}`;
+                
+                // Agregar event listeners a los botones del carrito
+                agregarEventListenersCarrito();
+                
+            } else {
+                carritoVacio.style.display = 'block';
+                carritoContenido.style.display = 'none';
+                btnProcederPago.style.display = 'none';
+                btnLimpiarCarrito.style.display = 'none';
+                descuentoAplicado = 0;
+                cuponAplicado = '';
+                document.getElementById('codigo-cupon').value = '';
+                document.getElementById('cupon-mensaje').innerHTML = '';
+            }
+            
+            actualizarContadorCarrito();
+        }
+
+        function agregarEventListenersCarrito() {
+            // Botones de sumar
+            document.querySelectorAll('.btn-sumar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-id');
+                    actualizarCantidad(itemId, 1);
+                });
             });
-
-            // Click en 'Ver'
-            card.querySelector('.btn-ver').addEventListener('click', (e) => {
-                e.stopPropagation();
-                abrirProductoModal({ nombre, precio, img });
+            
+            // Botones de restar
+            document.querySelectorAll('.btn-restar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-id');
+                    actualizarCantidad(itemId, -1);
+                });
             });
-
-            // Click en la tarjeta
-            card.addEventListener('click', (e) => {
-                if (e.target.classList.contains('btn-agregar')) return;
-                abrirProductoModal({ nombre, precio, img });
+            
+            // Botones de eliminar
+            document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-id');
+                    eliminarDelCarrito(itemId);
+                });
             });
-        });
+        }
 
-        // ... (resto de tus event listeners para modales, carrito, etc.) ...
+        function actualizarCantidad(itemId, cambio) {
+            const item = carritoData.items.find(i => i.id == itemId);
+            if (!item) return;
 
-    }); // Fin de DOMContentLoaded
+            const nuevaCantidad = item.cantidad + cambio;
+
+            if (nuevaCantidad <= 0) {
+                eliminarDelCarrito(itemId);
+                return;
+            }
+
+            // VERIFICAR STOCK ANTES DE ACTUALIZAR
+            if (nuevaCantidad > item.stockDisponible) {
+                mostrarAlerta(`No hay suficiente stock. Máximo disponible: ${item.stockDisponible}`, 'error');
+                return;
+            }
+
+            fetch('/Cliente/ActualizarCantidad', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId: parseInt(itemId),
+                    nuevaCantidad: nuevaCantidad
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { 
+                        throw new Error(text || 'Error en el servidor'); 
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    cargarCarrito();
+                    mostrarAlerta('Cantidad actualizada correctamente', 'success');
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta(error.message, 'error');
+                cargarCarrito();
+            });
+        }
+
+        function eliminarDelCarrito(itemId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+                return;
+            }
+            
+            fetch('/Cliente/EliminarDelCarrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId: parseInt(itemId)
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { 
+                        throw new Error(text || 'Error en el servidor'); 
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    cargarCarrito();
+                    mostrarAlerta(data.message, 'success');
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta(error.message, 'error');
+            });
+        }
+
+        function limpiarCarrito() {
+            if (confirm('¿Estás seguro de que quieres vaciar completamente el carrito?')) {
+                fetch('/Cliente/LimpiarCarrito', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { 
+                            throw new Error(text || 'Error en el servidor'); 
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        cargarCarrito();
+                        mostrarAlerta(data.message, 'success');
+                    } else {
+                        throw new Error(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarAlerta(error.message, 'error');
+                });
+            }
+        }
+
+        // ========== FUNCIONES DE CUPONES ==========
+
+        function aplicarCupon() {
+            const codigoCupon = document.getElementById('codigo-cupon').value.trim();
+            
+            if (!codigoCupon) {
+                mostrarAlerta('Por favor ingresa un código de cupón', 'warning');
+                return;
+            }
+            
+            fetch('/Cliente/AplicarCupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    codigoCupon: codigoCupon
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { 
+                        throw new Error(text || 'Error en el servidor'); 
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    descuentoAplicado = data.descuento;
+                    cuponAplicado = codigoCupon;
+                    document.getElementById('cupon-mensaje').innerHTML = 
+                        `<div class="alert alert-success">${data.mensaje}</div>`;
+                    renderizarCarrito();
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('cupon-mensaje').innerHTML = 
+                    `<div class="alert alert-danger">${error.message}</div>`;
+                descuentoAplicado = 0;
+                cuponAplicado = '';
+                renderizarCarrito();
+            });
+        }
+
+        // ========== FUNCIONES DE PAGO ==========
+
+        function procederPago() {
+            // Preparar resumen del pedido
+            const subtotalConDescuento = carritoData.subtotal - descuentoAplicado;
+            const igv = subtotalConDescuento * 0.18;
+            const total = subtotalConDescuento + igv;
+            
+            const resumen = document.getElementById('resumen-pedido');
+            resumen.innerHTML = `
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <span>S/ ${carritoData.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Descuento:</span>
+                    <span>-S/ ${descuentoAplicado.toFixed(2)}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>IGV (18%):</span>
+                    <span>S/ ${igv.toFixed(2)}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total a pagar:</span>
+                    <span class="text-primary">S/ ${total.toFixed(2)}</span>
+                </div>
+                <div class="mt-3">
+                    <h6>Productos:</h6>
+                    ${carritoData.items.map(item => `
+                        <div class="small text-muted">
+                            ${item.nombre} x${item.cantidad} - S/ ${(item.precio * item.cantidad).toFixed(2)}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            const modalCarrito = bootstrap.Modal.getInstance(document.getElementById('modalCarrito'));
+            if (modalCarrito) {
+                modalCarrito.hide();
+            }
+            
+            const modalPago = new bootstrap.Modal(document.getElementById('modalPago'));
+            modalPago.show();
+        }
+
+        function confirmarPedido() {
+            const direccionEnvio = document.getElementById('direccion-envio').value;
+            const metodoPago = document.querySelector('input[name="metodo-pago"]:checked').value;
+            
+            if (!direccionEnvio.trim()) {
+                mostrarAlerta('Por favor ingresa la dirección de envío', 'warning');
+                return;
+            }
+            
+            const pedidoData = {
+                direccionEnvio: direccionEnvio,
+                metodoPago: metodoPago,
+                descuentoAplicado: descuentoAplicado,
+                codigoCupon: cuponAplicado
+            };
+            
+            fetch('/Cliente/ProcesarPedido', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pedidoData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { 
+                        throw new Error(text || 'Error en el servidor'); 
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const modalPago = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
+                    if (modalPago) {
+                        modalPago.hide();
+                    }
+                    mostrarAlerta(`¡Pedido realizado con éxito! Número de pedido: ${data.pedidoId}`, 'success');
+                    
+                    // Limpiar todo
+                    carritoData = {};
+                    descuentoAplicado = 0;
+                    cuponAplicado = '';
+                    actualizarContadorCarrito();
+                    
+                    // Recargar página después de 3 segundos
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta(error.message, 'error');
+            });
+        }
+
+        // ========== FUNCIONES AUXILIARES ==========
+
+        function actualizarContadorCarrito() {
+            const contador = document.getElementById('carrito-contador');
+            if (contador) {
+                const cantidad = carritoData?.cantidadItems || 0;
+                contador.textContent = cantidad;
+                contador.style.display = cantidad > 0 ? 'flex' : 'none';
+                console.log(`🔢 Contador actualizado: ${cantidad}`);
+            }
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            console.log(`📢 Alerta [${tipo}]: ${mensaje}`);
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            
+            const icon = tipo === 'success' ? '✅' : tipo === 'warning' ? '⚠️' : '❌';
+            const title = tipo === 'success' ? 'Éxito' : tipo === 'warning' ? 'Advertencia' : 'Error';
+            
+            alertDiv.innerHTML = `
+                <strong>${icon} ${title}</strong><br>
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
     </script>
-
-    @* (El resto de tu script que maneja los modales y el carrito va aquí) *@
-    @* ... Pega tu script anterior completo aquí ... *@
-
-</body>
-</html>
+}
