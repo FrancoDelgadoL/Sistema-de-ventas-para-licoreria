@@ -27,7 +27,7 @@ namespace Ezel_Market.Controllers
         public async Task<IActionResult> Index()
         {
             var lista = await _context.Inventarios
-                .Include(i => i.Categoria)
+                .Include(i => i.Categorias)
                 .ToListAsync();
 
             return View(lista);
@@ -40,7 +40,7 @@ namespace Ezel_Market.Controllers
                 return NotFound();
 
             var inventario = await _context.Inventarios
-                .Include(i => i.Categoria)
+                .Include(i => i.Categorias)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (inventario == null)
@@ -52,7 +52,7 @@ namespace Ezel_Market.Controllers
         // GET: Inventario/Create
         public IActionResult Create()
         {
-            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre");
+            ViewBag.Categorias = new SelectList(_context.Categorias, "Id", "Nombre");
             return View();
         }
 
@@ -92,7 +92,7 @@ namespace Ezel_Market.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
+            ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
             return View(inventario);
         }
 
@@ -106,7 +106,7 @@ namespace Ezel_Market.Controllers
             if (inventario == null)
                 return NotFound();
 
-            ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
+            ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
             return View(inventario);
         }
 
@@ -191,7 +191,7 @@ namespace Ezel_Market.Controllers
                 }
 
                 // Si el modelo no es válido
-                ViewBag.Categorias = new SelectList(_context.Categoria, "Id", "Nombre", inventario.CategoriasId);
+                ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
                 return View(inventario);
             }
 
@@ -202,7 +202,7 @@ namespace Ezel_Market.Controllers
                 return NotFound();
 
             var inventario = await _context.Inventarios
-                .Include(i => i.Categoria)
+                .Include(i => i.Categorias)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (inventario == null)

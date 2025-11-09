@@ -48,15 +48,187 @@ body{
 .catalogo-header h2{color:var(--vino-dark);font-size:1.6rem;margin:0}
 .catalogo-header p{color:var(--gris); margin:0.4rem 0 0}
 
-/* FILTROS */
-.filtros-container{display:flex; justify-content:center; gap:0.8rem; margin-bottom:1.2rem}
-.filtro-input, .filtro-select{
-    padding:0.7rem 1rem; border-radius:999px; border:1px solid rgba(55,35,37,0.08);
-    background:linear-gradient(180deg,#fff,#fffaf9); box-shadow:0 2px 6px rgba(55,35,37,0.03);
-    min-width:220px;
-}
-.filtro-input:focus, .filtro-select:focus{outline:none; box-shadow:0 6px 20px rgba(123,55,64,0.08)}
+/* ==================================== */
+/* 🔎 FILTROS (Diseño Centrado y Apilado) */
+/* ==================================== */
 
+/* Contenedor principal de filtros */
+.filtros-container {
+    display: flex;
+    flex-direction: column; /* 💡 CAMBIO: Apila los elementos verticalmente */
+    align-items: center;    /* 💡 CAMBIO: Centra la pila horizontalmente */
+    gap: 20px; /* Espacio vertical entre el buscador y la caja de categorías */
+    margin-bottom: 30px;
+    padding: 15px 0;
+}
+
+/* Estilo del input de búsqueda (buscador) */
+.filtro-input {
+    /* 💡 CAMBIO: Le damos un ancho fijo y máximo */
+    width: 100%;
+    max-width: 600px; /* Ajusta este ancho a tu gusto */
+    box-sizing: border-box; /* Para que el padding no afecte el ancho total */
+    
+    /* (Mantenemos los estilos visuales de antes) */
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    
+    /* ❌ ELIMINADO: Ya no necesitamos 'flex-grow: 1;' */
+}
+
+.filtro-input:focus {
+    border-color: #791c1c; 
+    outline: none; 
+    box-shadow: 0 0 0 3px rgba(121, 28, 28, 0.2);
+}
+
+/* Contenedor de Checkboxes y el botón de Reset */
+.categorias-filtro-box {
+    /* 💡 CAMBIO: Hacemos que tenga el mismo ancho que el buscador */
+    width: 100%;
+    max-width: 600px; /* Debe coincidir con el max-width del buscador */
+    box-sizing: border-box; /* Para que el padding no afecte el ancho total */
+    
+    /* (Mantenemos los estilos visuales de antes) */
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f7f7f7;
+    position: relative; 
+    
+    /* ❌ ELIMINADO: Ya no necesitamos 'flex-basis', 'flex-grow' o 'min-width' */
+}
+
+/* (El resto de los estilos de .categorias-filtro-box h4, .checkbox-list, etc. 
+   pueden permanecer exactamente iguales a como te los di antes) */
+
+.categorias-filtro-box h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 1px dashed #e0e0e0;
+    padding-bottom: 5px;
+}
+
+.checkbox-list {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 15px 25px; 
+    margin-bottom: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 500;
+    color: #555;
+    transition: color 0.2s;
+}
+
+.checkbox-label:hover {
+    color: #791c1c;
+}
+
+.categoria-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.categoria-checkbox:checked {
+    border-color: #791c1c;
+    background-color: #791c1c;
+}
+
+.categoria-checkbox:checked::after {
+    content: '\f00c';
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 10px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.reset-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.reset-btn:hover {
+    color: #a00;
+    transform: scale(1.1);
+}
+
+.buscador-container {
+    position: relative; /* Clave para posicionar la 'X' */
+    width: 100%;
+    max-width: 600px; /* Asegúrate que coincida con .categorias-filtro-box */
+}
+
+/* Ajustamos el input para que deje espacio a la 'X' */
+.filtros-container .filtro-input {
+    /* 💡 CAMBIO: Añadimos padding a la derecha para que el texto no quede debajo de la 'X' */
+    padding-right: 40px; 
+    
+    /* Asegúrate de que siga ocupando todo el contenedor */
+    width: 100%;
+    box-sizing: border-box; /* Importante */
+}
+
+/* Botón 'X' del buscador */
+.reset-buscador-btn {
+    position: absolute;
+    right: 10px; /* Posición a la derecha */
+    top: 50%;    /* Centrado vertical */
+    transform: translateY(-50%);
+    
+    /* Estilos de la 'X' */
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #aaa;
+    font-size: 24px; /* Tamaño de la 'X' */
+    font-weight: bold;
+    line-height: 1;
+    padding: 0 5px;
+    
+    /* 💡 NUEVO: Oculto por defecto, JS lo mostrará */
+    display: none; 
+}
+
+.reset-buscador-btn:hover {
+    color: #333;
+}
+
+/* ❌ ELIMINADO: El bloque @media (max-width: 600px) ya no es necesario,
+   porque este nuevo diseño (width: 100%; max-width: 600px) 
+   es inherentemente responsivo. */
 /* ====== Grid de productos ====== */
 .catalogo-grid{
     display:grid;

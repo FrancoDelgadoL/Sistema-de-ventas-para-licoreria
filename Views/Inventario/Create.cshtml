@@ -13,13 +13,13 @@
         <input asp-for="NombreProducto" class="form-control" />
         <span asp-validation-for="NombreProducto" class="text-danger"></span>
     </div>
-
-    <div class="form-group">
+    
+    @*<div class="form-group">
         <label asp-for="CategoriasId">Categoría</label>
         <select asp-for="CategoriasId" asp-items="ViewBag.Categorias" class="form-control"></select>
         <span asp-validation-for="CategoriasId" class="text-danger"></span>
-    </div>
-
+    </div>*@
+    
     <div class="form-group">
         <label asp-for="Cantidad"></label>
         <input asp-for="Cantidad" class="form-control" type="number" min="0" />

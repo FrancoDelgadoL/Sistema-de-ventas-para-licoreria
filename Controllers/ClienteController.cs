@@ -37,12 +37,12 @@ namespace Ezel_Market.Controllers
 
             // 2. Llenar la lista de Productos
             viewModel.Productos = await _context.Inventario 
-                .Include(p => p.Categoria) // Incluye la info de Categoria
+                .Include(p => p.Categorias) // Incluye la info de Categoria
                 .OrderBy(p => p.NombreProducto) // Ordena alfabéticamente
                 .ToListAsync();                 
 
             // 3. Llenar la lista de Categorías para el filtro
-            viewModel.Categorias = await _context.Categoria
+            viewModel.Categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
