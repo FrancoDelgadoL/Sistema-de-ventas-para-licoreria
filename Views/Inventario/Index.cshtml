@@ -63,7 +63,7 @@
                     }
                 </td>
                 <td>@item.NombreProducto</td>
-                <td>@item.Categoria?.Nombre</td>
+                <td>@string.Join(", ", item.Categorias.Select(c => c.Nombre))</td>
                 
                 <td style="font-weight: bold; font-size: 1.1em;">
                     @item.Cantidad

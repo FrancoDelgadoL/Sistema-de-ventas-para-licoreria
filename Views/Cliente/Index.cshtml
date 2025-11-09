@@ -1,4 +1,5 @@
 @* PASO 1: Especificar el ViewModel que esta vista recibe *@
+@using System.Linq
 @model Ezel_Market.Models.ClienteCatalogoViewModel
 
 @{
@@ -48,25 +49,46 @@
     <main class="container">
         <section class="catalogo-header">
             <h2>Catálogo de Productos</h2>
-            <p>Descubre nuestras mejores bebidas y snacks. — Calidad y buen precio.</p>
         </section>
 
         <!-- FILTROS -->
-        <section class="filtros-container">
-            <input id="buscador" type="text" placeholder="Buscar producto..." class="filtro-input" />
-            
-            @* PASO 4: Llenar el <select> dinámicamente *@
-            <select id="selectCategoria" class="filtro-select">
-                <option value="">Todas las categorías</option>
+            <section class="filtros-container">
                 
-                @if (Model.Categorias != null && Model.Categorias.Any())
-                {
-                    @foreach (var cat in Model.Categorias)
+                @* 💡 NUEVO: Contenedor para el buscador y el botón 'X' *@
+                <div class="buscador-container">
+                    <input id="buscador" type="text" placeholder="Buscar producto..." class="filtro-input" />
+                    
+                    @* 💡 NUEVO: Botón 'X' para limpiar el buscador *@
+                    <button id="btnResetBuscador" class="reset-buscador-btn" type="button" title="Limpiar búsqueda">
+                        &times; @* Este es el caracter 'X' (multiplicación) *@
+                    </button>
+                </div>
+                
+                <div class="categorias-filtro-box">
+                <h4>Filtrar por Categoría</h4>
+                
+                @* Nuevo contenedor para las categorías *@
+                <div id="categoriasCheckboxContainer" class="checkbox-list">
+                    @if (Model.Categorias != null && Model.Categorias.Any())
                     {
-                        <option value="@cat.Nombre">@cat.Nombre</option>
+                        @foreach (var cat in Model.Categorias)
+                        {
+                            <label class="checkbox-label">
+                                <input type="checkbox" 
+                                    name="categoriaFiltro" 
+                                    value="@cat.Nombre" 
+                                    class="categoria-checkbox" />
+                                @cat.Nombre
+                            </label>
+                        }
                     }
-                }
-            </select>
+                </div>
+                
+                @* Botón de Reset *@
+                <button id="btnResetCategorias" class="reset-btn" title="Limpiar categorías seleccionadas">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </section>
 
         <!-- PRODUCTOS -->
@@ -77,15 +99,19 @@
             {
                 @foreach (var prod in Model.Productos)
                 {
+                    @* 💡 CORRECCIÓN: Usamos string.Join para crear una lista de categorías separadas por coma *@
+                        // Asume que prod.Categorias es ICollection<Categorias>
+                    var listaCategorias = prod.Categorias != null ? string.Join(",", prod.Categorias.Select(c => c.Nombre)) : "";
+
                     <article class="producto-card" 
-                             data-categoria="@prod.Categoria.Nombre" 
-                             data-nombre="@prod.NombreProducto" 
-                             data-precio="@prod.PrecioVentaMinorista" 
-                             data-img="@Url.Content(prod.Imagen)">
+                            data-categoria="@listaCategorias" 
+                            data-nombre="@prod.NombreProducto" 
+                            data-precio="@prod.PrecioVentaMinorista" 
+                            data-img="@Url.Content(prod.Imagen)">
                         
+                        @* ... el resto de la tarjeta del producto es igual ... *@
                         <div class="card-top">
                             @* (Lógica de descuento si la tienes) *@
-                            @* <span class="descuento">-30%</span> *@
                         </div>
                         
                         <img src="@Url.Content(prod.Imagen)" alt="@prod.NombreProducto" class="producto-img" />
@@ -93,8 +119,6 @@
                         
                         <div class="precios">
                             <span class="precio-actual">S/ @prod.PrecioVentaMinorista.ToString("F2")</span>
-                            @* (Lógica de precio antiguo si la tienes) *@
-                            @* <span class="precio-antiguo">S/ 90.70</span> *@
                         </div>
                         
                         <div class="card-actions">
@@ -108,7 +132,6 @@
             {
                 <p>No se encontraron productos.</p>
             }
-
         </section>
     </main>
 
@@ -131,20 +154,24 @@
         let carrito = []; // {id, nombre, precio, img, cantidad}
         const IGV_RATE = 0.18;
 
-        // Selectores (movidos a DOMContentLoaded)
+        // Selectores 
         let productoCards;
         const contadorCarrito = document.getElementById('contadorCarrito');
 
-        // ... (resto de selectores de modales) ...
+        // ... (resto de selectores de modales que debes tener definidos) ...
         const productoModal = document.getElementById('productoModal');
         const modalImg = document.getElementById('modal-img');
         const modalNombre = document.getElementById('modal-nombre');
-        // ... etc ...
         const carritoModal = document.getElementById('carritoModal');
         const listaCarrito = document.getElementById('listaCarrito');
         // ... etc ...
+
+        // Selectores para el FILTRO
         const buscadorInput = document.getElementById('buscador');
-        const categoriaSelect = document.getElementById('selectCategoria');
+        // ✅ CORREGIDO: Usamos la nueva colección de checkboxes
+        const btnResetBuscador = document.getElementById('btnResetBuscador');
+        const categoriaCheckboxes = document.querySelectorAll('.categoria-checkbox'); 
+        const btnResetCategorias = document.getElementById('btnResetCategorias');
 
 
         // ---------- Helpers ----------
@@ -157,26 +184,44 @@
             return `S/ ${n.toFixed(2)}`;
         }
         
-        // ... (resto de funciones helper: calcularTotales, abrirModal, cerrarModal) ...
+        // ... (resto de funciones helper: calcularTotales, abrirModal, cerrarModal, Lógica de Modal Producto, Lógica de Carrito, Lógica de simulación de pago) ...
         
-        // ... (Lógica de Modal Producto) ...
-
-        // ... (Lógica de Carrito) ...
+        // Listener del buscador (input)
+        buscadorInput.addEventListener('input', () => {
+            
+            // 1. Lógica para mostrar/ocultar la 'X'
+            if (buscadorInput.value.length > 0) {
+                btnResetBuscador.style.display = 'block'; // 👈 AQUÍ SE MUESTRA
+            } else {
+                btnResetBuscador.style.display = 'none'; // 👈 AQUÍ SE OCULTA
+            }
+            
+            // 2. Lógica de filtrado
+            aplicarFiltros();
+        });
         
-        // ... (Lógica de simulación de pago) ...
-
-        // ---------- LÓGICA DE FILTRADO (CORREGIDA) ----------
+        // ---------- LÓGICA DE FILTRADO (MUCHOS A MUCHOS) ----------
         function aplicarFiltros() {
             const queryBusqueda = buscadorInput.value.toLowerCase();
-            const categoriaSeleccionada = categoriaSelect.value;
+            
+            // 💡 LÓGICA: Obtener un array de nombres de categorías seleccionadas
+            const categoriasSeleccionadas = Array.from(categoriaCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value); // Obtiene el valor (nombre de la categoría)
 
             // Recorremos todas las tarjetas CADA vez que un filtro cambia
             document.querySelectorAll('.producto-card').forEach(card => {
                 const nombre = card.dataset.nombre.toLowerCase();
-                const categoria = card.dataset.categoria;
+                
+                // 💡 LÓGICA: Obtiene el string de categorías (ej: "Bebidas,Snacks") y lo convierte en array
+                // .split(',') maneja productos sin categorías asignadas si listaCategorias es ""
+                const cardCategorias = card.dataset.categoria.split(','); 
 
                 // 1. ¿Pasa el filtro de categoría?
-                const pasaCategoria = (categoriaSeleccionada === "") || (categoria === categoriaSeleccionada);
+                // Si no hay categorías seleccionadas (length === 0), todos pasan.
+                // Si hay seleccionadas, el producto debe tener AL MENOS UNA coincidencia.
+                const pasaCategoria = (categoriasSeleccionadas.length === 0) || 
+                    categoriasSeleccionadas.some(selectedCat => cardCategorias.includes(selectedCat));
                 
                 // 2. ¿Pasa el filtro de búsqueda?
                 const pasaBusqueda = nombre.includes(queryBusqueda);
@@ -190,46 +235,73 @@
             });
         }
 
-        // ---------- Inicialización (Event Listeners) ----------
-        document.addEventListener('DOMContentLoaded', function () {
+    // ---------- Inicialización (Event Listeners) ----------
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // 💡 CORREGIDO: Listener del buscador (input)
+        // (Este listener ahora maneja la 'X' Y el filtrado)
+        buscadorInput.addEventListener('input', () => {
+            // 1. Lógica para mostrar/ocultar la 'X'
+            if (buscadorInput.value.length > 0) {
+                btnResetBuscador.style.display = 'block';
+            } else {
+                btnResetBuscador.style.display = 'none';
+            }
             
-            // Asignamos los listeners a los filtros
-            buscadorInput.addEventListener('input', aplicarFiltros);
-            categoriaSelect.addEventListener('change', aplicarFiltros);
+            // 2. Lógica de filtrado
+            aplicarFiltros();
+        });
+        
+        // 💡 FALTANTE: Listener para el botón 'X' del buscador
+        btnResetBuscador.addEventListener('click', () => {
+            buscadorInput.value = ''; // Limpia el input
+            btnResetBuscador.style.display = 'none'; // Oculta la 'X'
+            aplicarFiltros(); // Vuelve a filtrar (mostrando todo)
+        });
 
-            // Asignamos listeners a las tarjetas de producto
-            // (Es importante hacerlo aquí DESPUÉS de que el DOM cargue)
-            productoCards = document.querySelectorAll('.producto-card');
+        // Listener para CADA CHECKBOX
+        categoriaCheckboxes.forEach(cb => {
+            cb.addEventListener('change', aplicarFiltros);
+        });
 
-            productoCards.forEach(card => {
-                const nombre = card.dataset.nombre;
-                const precio = parseFloat(card.dataset.precio || 0);
-                const img = card.dataset.img;
+        // Listener para Botón de Resetear Categorías
+        btnResetCategorias.addEventListener('click', () => {
+            categoriaCheckboxes.forEach(cb => {
+                cb.checked = false; // Desmarcar todos
+            });
+            aplicarFiltros(); // Re-aplicar el filtro (mostrando todo)
+        });
+        
+        // Asignamos listeners a las tarjetas de producto
+        productoCards = document.querySelectorAll('.producto-card');
 
-                // Click en el botón '+' (agrega rápido)
-                card.querySelector('.btn-agregar').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    agregarAlCarrito({ nombre, precio, img, cantidad: 1 });
-                });
+        productoCards.forEach(card => {
+            const nombre = card.dataset.nombre;
+            const precio = parseFloat(card.dataset.precio || 0);
+            const img = card.dataset.img;
 
-                // Click en 'Ver'
-                card.querySelector('.btn-ver').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    abrirProductoModal({ nombre, precio, img });
-                });
-
-                // Click en la tarjeta
-                card.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('btn-agregar')) return;
-                    abrirProductoModal({ nombre, precio, img });
-                });
+            // Click en el botón '+' (agrega rápido)
+            card.querySelector('.btn-agregar').addEventListener('click', (e) => {
+                e.stopPropagation();
+                agregarAlCarrito({ nombre, precio, img, cantidad: 1 });
             });
 
-            // ... (resto de tus event listeners para modales, carrito, etc.) ...
-            // (Asegúrate de que toda la lógica que te pasé antes esté aquí)
+            // Click en 'Ver'
+            card.querySelector('.btn-ver').addEventListener('click', (e) => {
+                e.stopPropagation();
+                abrirProductoModal({ nombre, precio, img });
+            });
 
-        }); // Fin de DOMContentLoaded
+            // Click en la tarjeta
+            card.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-agregar')) return;
+                abrirProductoModal({ nombre, precio, img });
+            });
+        });
 
+        // ... (resto de tus event listeners para modales, carrito, etc.) ...
+
+    }); // Fin de DOMContentLoaded
     </script>
 
     @* (El resto de tu script que maneja los modales y el carrito va aquí) *@
