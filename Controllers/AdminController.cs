@@ -391,6 +391,7 @@ namespace Ezel_Market.Controllers
             }
         }
 
+        //===========Controller para cupones======================================================================================
         //Controller para cupones
         // GET: ListarCupones - Vista única con todo
         public async Task<IActionResult> ListarCupones()
@@ -447,7 +448,7 @@ namespace Ezel_Market.Controllers
 
                     _context.Add(cupon);
                     await _context.SaveChangesAsync();
-                    
+
                     TempData["Success"] = $"Cupón '{cupon.Codigo}' creado exitosamente";
                     _logger.LogInformation($"Cupón {cupon.Codigo} creado por {User.Identity.Name}");
                 }
@@ -498,7 +499,7 @@ namespace Ezel_Market.Controllers
                     return RedirectToAction(nameof(ListarCupones));
                 }
 
-                // 🔥 CORRECCIÓN PRINCIPAL: Cargar el cupón existente y actualizar propiedades individualmente
+                // Cargar el cupón existente y actualizar propiedades individualmente
                 var cuponExistente = await _context.Cupones.FindAsync(cupon.Id);
                 if (cuponExistente == null)
                 {
@@ -506,11 +507,11 @@ namespace Ezel_Market.Controllers
                     return RedirectToAction(nameof(ListarCupones));
                 }
 
-                // 🔥 ACTUALIZAR PROPIEDADES UNA POR UNA (evita problemas de tracking)
+                // ACTUALIZAR PROPIEDADES UNA POR UNA (evita problemas de tracking)
                 cuponExistente.Codigo = cupon.Codigo;
                 cuponExistente.Descripcion = cupon.Descripcion;
                 cuponExistente.TipoDescuento = cupon.TipoDescuento;
-                
+
                 // Manejar campos de descuento según el tipo
                 if (cupon.TipoDescuento == TipoDescuento.MontoFijo)
                 {
@@ -522,18 +523,19 @@ namespace Ezel_Market.Controllers
                     cuponExistente.PorcentajeDescuento = cupon.PorcentajeDescuento;
                     cuponExistente.ValorDescuento = 0;
                 }
-                
+
                 cuponExistente.FechaInicio = cupon.FechaInicio;
                 cuponExistente.FechaExpiracion = cupon.FechaExpiracion;
                 cuponExistente.UsosMaximos = cupon.UsosMaximos;
                 cuponExistente.MontoMinimoCompra = cupon.MontoMinimoCompra;
                 cuponExistente.Activo = cupon.Activo;
-                cuponExistente.SoloPrimeraCompra = cupon.SoloPrimeraCompra;
+
+                // ❌ ELIMINADO: cuponExistente.SoloPrimeraCompra = cupon.SoloPrimeraCompra;
 
                 // No actualizar UsosActuales - mantener el valor existente
 
                 await _context.SaveChangesAsync();
-                
+
                 TempData["Success"] = $"Cupón '{cupon.Codigo}' actualizado exitosamente";
                 _logger.LogInformation($"Cupón {cupon.Codigo} actualizado por {User.Identity.Name}");
             }
@@ -575,7 +577,7 @@ namespace Ezel_Market.Controllers
                 var codigoCupon = cupon.Codigo;
                 _context.Cupones.Remove(cupon);
                 await _context.SaveChangesAsync();
-                
+
                 TempData["Success"] = $"Cupón '{codigoCupon}' eliminado exitosamente";
                 _logger.LogInformation($"Cupón {codigoCupon} eliminado por {User.Identity.Name}");
             }
@@ -611,12 +613,14 @@ namespace Ezel_Market.Controllers
 
                 var descuento = cupon.CalcularDescuento(subtotal);
 
-                return Json(new { 
-                    valido = true, 
+                return Json(new
+                {
+                    valido = true,
                     mensaje = "Cupón aplicado correctamente",
                     descuento = descuento,
                     tipoDescuento = cupon.TipoDescuento.ToString(),
-                    cupon = new {
+                    cupon = new
+                    {
                         codigo = cupon.Codigo,
                         descripcion = cupon.Descripcion
                     }
