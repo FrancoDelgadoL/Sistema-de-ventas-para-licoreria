@@ -27,7 +27,8 @@ namespace Ezel_Market.Controllers
         public async Task<IActionResult> Index()
         {
             var lista = await _context.Inventarios
-                .Include(i => i.Categorias)
+                .Include(i => i.CategoriaInventarios)
+                    .ThenInclude(ci => ci.Categoria)
                 .ToListAsync();
 
             return View(lista);
@@ -40,7 +41,8 @@ namespace Ezel_Market.Controllers
                 return NotFound();
 
             var inventario = await _context.Inventarios
-                .Include(i => i.Categorias)
+                .Include(i => i.CategoriaInventarios)
+                    .ThenInclude(ci => ci.Categoria)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (inventario == null)
@@ -59,7 +61,7 @@ namespace Ezel_Market.Controllers
         // POST: Inventario/Create (con imagen)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo)
+        public async Task<IActionResult> Create([Bind("Id,NombreProducto,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso")] Inventario inventario, IFormFile ImagenArchivo, List<int> CategoriasSeleccionadas)  // ✅ AGREGADO CategoriasSeleccionadas
         {
             if (ModelState.IsValid)
             {
@@ -83,12 +85,27 @@ namespace Ezel_Market.Controllers
                         await ImagenArchivo.CopyToAsync(stream);
                     }
 
-                    // Guardar nombre del archivo en el modelo (asegúrate que exista la propiedad Imagen en el modelo)
                     inventario.Imagen = "/imagenes/" + nombreArchivo;
                 }
 
                 _context.Add(inventario);
                 await _context.SaveChangesAsync();
+
+                // ✅ AGREGAR RELACIONES CON CATEGORÍAS
+                if (CategoriasSeleccionadas != null && CategoriasSeleccionadas.Any())
+                {
+                    foreach (var categoriaId in CategoriasSeleccionadas)
+                    {
+                        var categoriaInventario = new CategoriaInventario
+                        {
+                            InventarioId = inventario.Id,
+                            CategoriaId = categoriaId
+                        };
+                        _context.CategoriaInventarios.Add(categoriaInventario);
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -102,98 +119,116 @@ namespace Ezel_Market.Controllers
             if (id == null)
                 return NotFound();
 
-            var inventario = await _context.Inventarios.FindAsync(id);
+            // ✅ CORREGIDO: Agregar Include para las relaciones
+            var inventario = await _context.Inventarios
+                .Include(i => i.CategoriaInventarios)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
             if (inventario == null)
                 return NotFound();
 
             ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
+            
+            // ✅ PASAR CATEGORÍAS SELECCIONADAS A LA VISTA
+            ViewBag.CategoriasSeleccionadas = inventario.CategoriaInventarios?.Select(ci => ci.CategoriaId).ToList() ?? new List<int>();
+            
             return View(inventario);
         }
 
         // POST: Inventario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,CategoriasId,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NombreProducto,Cantidad,PrecioCompra,PrecioVentaMinorista,PrecioVentaMayorista,FechaIngreso,Imagen")] Inventario inventario, IFormFile ImagenArchivo, List<int> CategoriasSeleccionadas)  // ✅ AGREGADO
         {
             if (id != inventario.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                // 1. OBTENEMOS EL ESTADO ANTIGUO (¡SIN RASTREO!)
+                var inventarioAntiguo = await _context.Inventarios
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(i => i.Id == id);
+
+                if (inventarioAntiguo == null)
                 {
                     return NotFound();
                 }
 
-                if (ModelState.IsValid) // Esto ya incluye tu validación de precios del Modelo
+                try
                 {
-                    // 1. OBTENEMOS EL ESTADO ANTIGUO (¡SIN RASTREO!)
-                    var inventarioAntiguo = await _context.Inventarios
-                        .AsNoTracking() // <-- Muy importante
-                        .FirstOrDefaultAsync(i => i.Id == id);
+                    // 2. LÓGICA DE HISTORIAL
+                    int cantidadAntigua = inventarioAntiguo.Cantidad;
+                    int cantidadNueva = inventario.Cantidad;
 
-                    if (inventarioAntiguo == null)
+                    if (cantidadAntigua != cantidadNueva)
                     {
-                        return NotFound();
+                        string usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                        var historial = new HistorialInventario
+                        {
+                            InventarioId = inventario.Id,
+                            CantidadAnterior = cantidadAntigua,
+                            CantidadNueva = cantidadNueva,
+                            TipoMovimiento = "Edición Manual",
+                            Fecha = DateTime.Now,
+                            UsuarioId = usuarioId
+                        };
+                        _context.HistorialInventarios.Add(historial);
                     }
 
-                    try
+                    // 3. LÓGICA DE IMAGEN
+                    if (ImagenArchivo != null && ImagenArchivo.Length > 0)
                     {
-                        // 2. LÓGICA DE HISTORIAL
-                        int cantidadAntigua = inventarioAntiguo.Cantidad;
-                        int cantidadNueva = inventario.Cantidad; // La del formulario
-
-                        if (cantidadAntigua != cantidadNueva)
+                        string carpetaImagenes = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes");
+                        if (!Directory.Exists(carpetaImagenes)) Directory.CreateDirectory(carpetaImagenes);
+                        string nombreArchivo = Path.GetFileName(ImagenArchivo.FileName);
+                        string rutaArchivo = Path.Combine(carpetaImagenes, nombreArchivo);
+                        using (var stream = new FileStream(rutaArchivo, FileMode.Create))
                         {
-                            
-                            // 👇 ¡AQUÍ ESTÁ LA MAGIA! 👇
-                            string usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                            var historial = new HistorialInventario
+                            await ImagenArchivo.CopyToAsync(stream);
+                        }
+                        inventario.Imagen = "/imagenes/" + nombreArchivo;
+                    }
+                    else
+                    {
+                        inventario.Imagen = inventarioAntiguo.Imagen;
+                    }
+
+                    // ✅ 4. ACTUALIZAR RELACIONES CON CATEGORÍAS
+                    var relacionesExistentes = _context.CategoriaInventarios
+                        .Where(ci => ci.InventarioId == id);
+                    _context.CategoriaInventarios.RemoveRange(relacionesExistentes);
+
+                    if (CategoriasSeleccionadas != null && CategoriasSeleccionadas.Any())
+                    {
+                        foreach (var categoriaId in CategoriasSeleccionadas)
+                        {
+                            _context.CategoriaInventarios.Add(new CategoriaInventario
                             {
                                 InventarioId = inventario.Id,
-                                CantidadAnterior = cantidadAntigua,
-                                CantidadNueva = cantidadNueva,
-                                TipoMovimiento = "Edición Manual",
-                                Fecha = DateTime.Now,
-                                UsuarioId = usuarioId  // <--- AÑADA ESTA LÍNEA
-                            };
-                            _context.HistorialInventarios.Add(historial); // Añadimos historial
+                                CategoriaId = categoriaId
+                            });
                         }
-
-                        // 3. LÓGICA DE IMAGEN
-                        if (ImagenArchivo != null && ImagenArchivo.Length > 0)
-                        {
-                            // ... (tu código para guardar la imagen) ...
-                            string carpetaImagenes = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes");
-                            if (!Directory.Exists(carpetaImagenes)) Directory.CreateDirectory(carpetaImagenes);
-                            string nombreArchivo = Path.GetFileName(ImagenArchivo.FileName);
-                            string rutaArchivo = Path.Combine(carpetaImagenes, nombreArchivo);
-                            using (var stream = new FileStream(rutaArchivo, FileMode.Create))
-                            {
-                                await ImagenArchivo.CopyToAsync(stream);
-                            }
-                            inventario.Imagen = "/imagenes/" + nombreArchivo; // Asignamos la nueva imagen
-                        }
-                        else
-                        {
-                            // Si no se subió imagen, mantenemos la antigua
-                            inventario.Imagen = inventarioAntiguo.Imagen;
-                        }
-
-                        // 4. ACTUALIZAMOS LA ENTIDAD
-                        _context.Update(inventario); // <-- EF se encarga de actualizar todo el objeto
-
-                        // 5. GUARDAMOS TODO (Inventario e Historial)
-                        await _context.SaveChangesAsync();
-                        
-                        TempData["MensajeExito"] = "¡Producto actualizado exitosamente!";
-                        return RedirectToAction(nameof(Index));
                     }
-                    catch (DbUpdateException ex)
-                    {
-                        ModelState.AddModelError("", "Error al guardar cambios: " + (ex.InnerException?.Message ?? ex.Message));
-                    }
+
+                    // 5. ACTUALIZAMOS LA ENTIDAD
+                    _context.Update(inventario);
+                    await _context.SaveChangesAsync();
+                    
+                    TempData["MensajeExito"] = "¡Producto actualizado exitosamente!";
+                    return RedirectToAction(nameof(Index));
                 }
-
-                // Si el modelo no es válido
-                ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
-                return View(inventario);
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError("", "Error al guardar cambios: " + (ex.InnerException?.Message ?? ex.Message));
+                }
             }
+
+            ViewBag.Categorias = new SelectList(_context.Categorias.ToList(), "Id", "Nombre");
+            return View(inventario);
+        }
 
         // GET: Inventario/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -202,7 +237,8 @@ namespace Ezel_Market.Controllers
                 return NotFound();
 
             var inventario = await _context.Inventarios
-                .Include(i => i.Categorias)
+                .Include(i => i.CategoriaInventarios)
+                    .ThenInclude(ci => ci.Categoria)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (inventario == null)
@@ -216,9 +252,17 @@ namespace Ezel_Market.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var inventario = await _context.Inventarios.FindAsync(id);
+            // ✅ CORREGIDO: Eliminar primero las relaciones
+            var inventario = await _context.Inventarios
+                .Include(i => i.CategoriaInventarios)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
             if (inventario != null)
             {
+                // ELIMINAR PRIMERO LAS RELACIONES
+                var relaciones = _context.CategoriaInventarios.Where(ci => ci.InventarioId == id);
+                _context.CategoriaInventarios.RemoveRange(relaciones);
+                
                 _context.Inventarios.Remove(inventario);
                 await _context.SaveChangesAsync();
             }
@@ -233,13 +277,11 @@ namespace Ezel_Market.Controllers
         // GET: Inventario/ObtenerHistorialGeneralPartial
         public async Task<IActionResult> ObtenerHistorialGeneralPartial()
         {
-            // Obtenemos TODO el historial
             var historialCompleto = await _context.HistorialInventarios
-                .Include(h => h.Inventario) // <-- Incluimos el producto para saber su nombre
-                .OrderByDescending(h => h.Fecha) // Lo ordenamos por fecha
+                .Include(h => h.Inventario)
+                .OrderByDescending(h => h.Fecha)
                 .ToListAsync();
 
-            // Devolvemos una nueva vista parcial
             return PartialView("_HistorialGeneralPartial", historialCompleto);
         }
     }

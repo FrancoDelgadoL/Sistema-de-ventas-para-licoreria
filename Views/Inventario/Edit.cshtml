@@ -8,7 +8,6 @@
 
 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-<!-- 🔽 IMPORTANTE: agregar enctype para subir archivos -->
 <form asp-action="Edit" method="post" enctype="multipart/form-data">
     <input type="hidden" asp-for="Id" />
 
@@ -18,11 +17,32 @@
         <span asp-validation-for="NombreProducto" class="text-danger"></span>
     </div>
 
-    @*<div class="form-group">
-        <label asp-for="CategoriasId">Categoría</label>
-        <select asp-for="CategoriasId" class="form-control" asp-items="ViewBag.Categorias"></select>
-        <span asp-validation-for="CategoriasId" class="text-danger"></span>
-    </div>*@
+    <!-- ✅ CORREGIDO: Cambiar de select simple a checkboxes para múltiples categorías -->
+    <div class="form-group">
+        <label>Categorías</label>
+        <div>
+            @if (ViewBag.Categorias != null)
+            {
+                var categoriasSeleccionadas = ViewBag.CategoriasSeleccionadas as List<int> ?? new List<int>();
+                
+                foreach (var categoria in ViewBag.Categorias as List<SelectListItem>)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="CategoriasSeleccionadas" 
+                               value="@categoria.Value" id="categoria_@categoria.Value"
+                               @(categoriasSeleccionadas.Contains(int.Parse(categoria.Value)) ? "checked" : "") />
+                        <label class="form-check-label" for="categoria_@categoria.Value">
+                            @categoria.Text
+                        </label>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">No hay categorías disponibles</p>
+            }
+        </div>
+    </div>
 
     <div class="form-group">
         <label asp-for="Cantidad"></label>
@@ -63,7 +83,7 @@
         <span asp-validation-for="FechaIngreso" class="text-danger"></span>
     </div>
 
-    <!-- 🔽 Mostrar imagen actual (si existe) -->
+    <!-- Mostrar imagen actual (si existe) -->
     @if (!string.IsNullOrEmpty(Model.Imagen))
     {
         <div class="form-group mt-3">
@@ -73,10 +93,23 @@
         </div>
     }
 
-    <!-- 🔽 Campo para subir nueva imagen -->
+    <!-- Campo para subir nueva imagen -->
     <div class="form-group mt-3">
         <label for="ImagenArchivo">Cambiar imagen (opcional):</label>
         <input type="file" name="ImagenArchivo" class="form-control" accept="image/*" />
+    </div>
+
+    <!-- ✅ AGREGADO: Campos para marca y grado alcohol -->
+    <div class="form-group">
+        <label asp-for="Marca"></label>
+        <input asp-for="Marca" class="form-control" />
+        <span asp-validation-for="Marca" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GradoAlcohol"></label>
+        <input asp-for="GradoAlcohol" class="form-control" type="number" min="0" step="0.1" />
+        <span asp-validation-for="GradoAlcohol" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary mt-3">Guardar cambios</button>

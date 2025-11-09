@@ -8,10 +8,31 @@
 
 <div>
     <h4>@Model.NombreProducto</h4>
-    <p>Categoría: @string.Join(", ", Model.Categorias.Select(c => c.Nombre))</p>
+    
+    <!-- ✅ CORREGIDO: Cambiar de Model.Categorias a Model.CategoriaInventarios -->
+    <p>
+        Categoría: 
+        @if (Model.CategoriaInventarios != null && Model.CategoriaInventarios.Any())
+        {
+            @string.Join(", ", Model.CategoriaInventarios.Select(ci => ci.Categoria?.Nombre))
+        }
+        else
+        {
+            <span class="text-muted">Sin categorías</span>
+        }
+    </p>
+    
     <p>Cantidad: @Model.Cantidad</p>
-    <p>Precio Venta Minorista: @Model.PrecioVentaMinorista</p>
-    <p>Precio Venta Mayorista: @Model.PrecioVentaMayorista</p>
+    <p>Precio Venta Minorista: S/ @Model.PrecioVentaMinorista</p>
+    <p>Precio Venta Mayorista: S/ @Model.PrecioVentaMayorista</p>
+    
+    <!-- Mostrar imagen si existe -->
+    @if (!string.IsNullOrEmpty(Model.Imagen))
+    {
+        <div class="mt-3">
+            <img src="@Model.Imagen" alt="@Model.NombreProducto" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" />
+        </div>
+    }
 </div>
 
 <form asp-action="Delete" method="post">

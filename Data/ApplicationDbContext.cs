@@ -13,9 +13,10 @@ namespace Ezel_Market.Data
         }
 
         // INVENTARIO Y CATEGORIAS
-        public DbSet<Inventario> Inventario { get; set; }
+        //public DbSet<Inventario> Inventario { get; set; }
         public DbSet<Categorias> Categorias { get; set; }
 
+         public DbSet<CategoriaInventario> CategoriaInventarios { get; set; }
         public DbSet<Cupon> Cupones { get; set; }
 
         //Pedidos
@@ -37,6 +38,19 @@ namespace Ezel_Market.Data
             builder.Entity<Carrito>()
                 .HasIndex(ci => new { ci.UsuarioId, ci.InventarioId })
                 .IsUnique();
+
+            builder.Entity<CategoriaInventario>()
+                .HasKey(ci => new { ci.CategoriaId, ci.InventarioId });
+    
+            builder.Entity<CategoriaInventario>()
+                .HasOne(ci => ci.Categoria)
+                .WithMany(c => c.CategoriaInventarios)
+                .HasForeignKey(ci => ci.CategoriaId);
+    
+            builder.Entity<CategoriaInventario>()
+                .HasOne(ci => ci.Inventario)
+                .WithMany(i => i.CategoriaInventarios)
+                .HasForeignKey(ci => ci.InventarioId);
             
             // SEED DATA PARA ROLES
             builder.Entity<IdentityRole>().HasData(

@@ -12,22 +12,54 @@
         <dd class="col-sm-9">@Model.NombreProducto</dd>
 
         <dt class="col-sm-3">Categoría</dt>
-        <dd class="col-sm-9">@string.Join(", ", Model.Categorias.Select(c => c.Nombre))</dd>
+        <dd class="col-sm-9">
+            <!-- ✅ CORREGIDO: Cambiar de Model.Categorias a Model.CategoriaInventarios -->
+            @if (Model.CategoriaInventarios != null && Model.CategoriaInventarios.Any())
+            {
+                @string.Join(", ", Model.CategoriaInventarios.Select(ci => ci.Categoria?.Nombre))
+            }
+            else
+            {
+                <span class="text-muted">Sin categorías</span>
+            }
+        </dd>
 
         <dt class="col-sm-3">Cantidad</dt>
         <dd class="col-sm-9">@Model.Cantidad</dd>
 
         <dt class="col-sm-3">Precio Compra</dt>
-        <dd class="col-sm-9">@Model.PrecioCompra</dd>
+        <dd class="col-sm-9">S/ @Model.PrecioCompra.ToString("N2")</dd>
 
         <dt class="col-sm-3">Precio Venta Minorista</dt>
-        <dd class="col-sm-9">@Model.PrecioVentaMinorista</dd>
+        <dd class="col-sm-9">S/ @Model.PrecioVentaMinorista.ToString("N2")</dd>
 
         <dt class="col-sm-3">Precio Venta Mayorista</dt>
-        <dd class="col-sm-9">@Model.PrecioVentaMayorista</dd>
+        <dd class="col-sm-9">S/ @Model.PrecioVentaMayorista.ToString("N2")</dd>
 
         <dt class="col-sm-3">Fecha Ingreso</dt>
         <dd class="col-sm-9">@Model.FechaIngreso.ToShortDateString()</dd>
+
+        <!-- ✅ AGREGADO: Mostrar imagen si existe -->
+        @if (!string.IsNullOrEmpty(Model.Imagen))
+        {
+            <dt class="col-sm-3">Imagen</dt>
+            <dd class="col-sm-9">
+                <img src="@Model.Imagen" alt="@Model.NombreProducto" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" />
+            </dd>
+        }
+
+        <!-- ✅ AGREGADO: Mostrar marca y grado alcohol si existen -->
+        @if (!string.IsNullOrEmpty(Model.Marca))
+        {
+            <dt class="col-sm-3">Marca</dt>
+            <dd class="col-sm-9">@Model.Marca</dd>
+        }
+
+        @if (Model.GradoAlcohol.HasValue)
+        {
+            <dt class="col-sm-3">Grado Alcohol</dt>
+            <dd class="col-sm-9">@Model.GradoAlcohol.Value.ToString("N1")°</dd>
+        }
     </dl>
 </div>
 

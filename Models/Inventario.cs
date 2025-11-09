@@ -16,6 +16,8 @@ namespace Ezel_Market.Models
 
         public ICollection<Categorias>? Categorias { get; set; }
 
+        public ICollection<CategoriaInventario>? CategoriaInventarios { get; set; }
+
         [Required(ErrorMessage = "La cantidad es obligatoria")]
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
         [Display(Name = "Cantidad en stock")]

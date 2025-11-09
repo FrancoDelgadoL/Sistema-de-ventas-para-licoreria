@@ -35,13 +35,16 @@ namespace Ezel_Market.Controllers
         public async Task<IActionResult> Index()
         {
             var viewModel = new ClienteCatalogoViewModel();
-            viewModel.Productos = await _context.Inventario 
-                .Include(p => p.Categoria)
-                .Where(p => p.Cantidad > 0) // Solo productos con stock
+            
+            // ✅ CORREGIDO: Usar SOLO Inventarios (coherente con tu DbContext)
+            viewModel.Productos = await _context.Inventarios
+                .Include(p => p.CategoriaInventarios)
+                    .ThenInclude(ci => ci.Categoria)
+                .Where(p => p.Cantidad > 0)
                 .OrderBy(p => p.NombreProducto)
                 .ToListAsync();                 
 
-            viewModel.Categorias = await _context.Categoria
+            viewModel.Categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
@@ -68,16 +71,15 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "Usuario no autenticado" });
                 }
 
-                // VERIFICACIÓN MEJORADA del producto
-                var producto = await _context.Inventario
-                    .FirstOrDefaultAsync(p => p.Id == model.InventarioId && p.Cantidad > 0); // Solo productos con stock
+                // ✅ CORREGIDO: Usar SOLO Inventarios
+                var producto = await _context.Inventarios
+                    .FirstOrDefaultAsync(p => p.Id == model.InventarioId && p.Cantidad > 0);
 
                 if (producto == null)
                 {
                     return Json(new { success = false, message = "Producto no disponible o sin stock" });
                 }
 
-                // Verificar stock disponible - CORREGIDO
                 if (model.Cantidad <= 0 || model.Cantidad > producto.Cantidad)
                 {
                     return Json(new { 
@@ -86,17 +88,14 @@ namespace Ezel_Market.Controllers
                     });
                 }
 
-                // Verificar si el producto ya está en el carrito - CORREGIDO
                 var itemExistente = await _context.Carrito
-                    .Include(c => c.Inventario) // Incluir el producto para verificar stock
+                    .Include(c => c.Inventario)
                     .FirstOrDefaultAsync(ci => ci.UsuarioId == usuarioId && ci.InventarioId == model.InventarioId);
 
                 if (itemExistente != null)
                 {
-                    // Calcular nueva cantidad total
                     var nuevaCantidadTotal = itemExistente.Cantidad + model.Cantidad;
             
-                    // Verificar que no exceda el stock - USAR EL PRODUCTO REAL
                     if (nuevaCantidadTotal > producto.Cantidad)
                     {
                         return Json(new { 
@@ -106,7 +105,7 @@ namespace Ezel_Market.Controllers
                     }
             
                     itemExistente.Cantidad = nuevaCantidadTotal;
-                    itemExistente.FechaAgregado = DateTime.Now; // Actualizar fecha
+                    itemExistente.FechaAgregado = DateTime.Now;
                 }
                 else
                 {
@@ -117,12 +116,11 @@ namespace Ezel_Market.Controllers
                         Cantidad = model.Cantidad,
                         FechaAgregado = DateTime.Now
                     };
-            _context.Carrito.Add(nuevoItem);
+                    _context.Carrito.Add(nuevoItem);
                 }
 
                 await _context.SaveChangesAsync();
         
-                // Obtener cantidad actualizada del carrito para el contador
                 var cantidadEnCarrito = await _context.Carrito
                     .Where(ci => ci.UsuarioId == usuarioId)
                     .SumAsync(ci => ci.Cantidad);
@@ -156,7 +154,8 @@ namespace Ezel_Market.Controllers
                 var items = await _context.Carrito
                     .Where(ci => ci.UsuarioId == usuarioId)
                     .Include(ci => ci.Inventario)
-                    .ThenInclude(i => i.Categoria)
+                        .ThenInclude(i => i.CategoriaInventarios)
+                            .ThenInclude(ci => ci.Categoria)
                     .Select(ci => new
                     {
                         id = ci.Id,
@@ -165,7 +164,7 @@ namespace Ezel_Market.Controllers
                         precio = ci.Inventario.PrecioVentaMinorista,
                         cantidad = ci.Cantidad,
                         imagenUrl = ci.Inventario.Imagen,
-                        categoria = ci.Inventario.Categoria.Nombre,
+                        categoria = ci.Inventario.CategoriaInventarios.FirstOrDefault().Categoria.Nombre ?? "Sin categoría",
                         subtotal = ci.Inventario.PrecioVentaMinorista * ci.Cantidad,
                         stockDisponible = ci.Inventario.Cantidad
                     })
@@ -203,7 +202,6 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "Item no encontrado" });
                 }
 
-                // Verificar stock disponible
                 if (model.NuevaCantidad > item.Inventario.Cantidad)
                 {
                     return Json(new { 
@@ -303,13 +301,11 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "Cupón no válido" });
                 }
 
-                // Verificar si el cupón está activo y disponible
                 if (!cupon.EsValido)
                 {
                     return Json(new { success = false, message = "Cupón no disponible" });
                 }
 
-                // Obtener subtotal del carrito para validar monto mínimo
                 var carritoItems = await _context.Carrito
                     .Where(ci => ci.UsuarioId == usuarioId)
                     .Include(ci => ci.Inventario)
@@ -325,7 +321,6 @@ namespace Ezel_Market.Controllers
                     });
                 }
 
-                // Calcular descuento
                 var descuento = cupon.CalcularDescuento(subtotal);
 
                 return Json(new
@@ -360,10 +355,9 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "Usuario no autenticado" });
                 }
 
-                // Obtener items del carrito con INCLUDE para el producto
                 var carritoItems = await _context.Carrito
                     .Where(ci => ci.UsuarioId == usuarioId)
-                    .Include(ci => ci.Inventario) // IMPORTANTE: Incluir el producto
+                    .Include(ci => ci.Inventario)
                     .ToListAsync();
 
                 if (!carritoItems.Any())
@@ -371,7 +365,6 @@ namespace Ezel_Market.Controllers
                     return Json(new { success = false, message = "El carrito está vacío" });
                 }
 
-                // VERIFICACIÓN MEJORADA de stock antes de procesar
                 var productosSinStock = new List<string>();
                 foreach (var item in carritoItems)
                 {
@@ -395,16 +388,13 @@ namespace Ezel_Market.Controllers
                     });
                 }
 
-                // Calcular totales
                 var subtotal = carritoItems.Sum(ci => ci.Inventario.PrecioVentaMinorista * ci.Cantidad);
         
-                // Aplicar descuento si existe
                 var descuento = model.DescuentoAplicado;
                 var subtotalConDescuento = subtotal - descuento;
                 var igv = subtotalConDescuento * 0.18m;
                 var total = subtotalConDescuento + igv;
 
-                // Crear pedido
                 var pedido = new Pedido
                 {
                     UsuarioId = usuarioId,
@@ -419,12 +409,10 @@ namespace Ezel_Market.Controllers
                 };
 
                 _context.Pedidos.Add(pedido);
-                await _context.SaveChangesAsync(); // Guardar para obtener el ID del pedido
+                await _context.SaveChangesAsync();
 
-                // ACTUALIZACIÓN DE STOCK MEJORADA
                 foreach (var item in carritoItems)
                 {
-                    // Crear detalle del pedido
                     var detalle = new PedidoDetalle
                     {
                         PedidoId = pedido.Id,
@@ -434,12 +422,9 @@ namespace Ezel_Market.Controllers
                     };
                     _context.PedidoDetalles.Add(detalle);
 
-                    // ACTUALIZAR STOCK del producto - ESTA ES LA PARTE IMPORTANTE
                     item.Inventario.Cantidad -= item.Cantidad;
-                    _context.Inventario.Update(item.Inventario); // Asegurar que se actualice
                 }
 
-                // Incrementar uso del cupón si se aplicó
                 if (!string.IsNullOrEmpty(model.CodigoCupon))
                 {
                     var cupon = await _context.Cupones
@@ -447,16 +432,13 @@ namespace Ezel_Market.Controllers
                     if (cupon != null)
                     {
                         cupon.UsosActuales++;
-                        _context.Cupones.Update(cupon);
                     }
                 }
 
-                // Limpiar carrito
                 _context.Carrito.RemoveRange(carritoItems);
         
-                // GUARDAR TODOS LOS CAMBIOS
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync(); // Confirmar transacción
+                await transaction.CommitAsync();
 
                 return Json(new { 
                     success = true, 
@@ -467,7 +449,7 @@ namespace Ezel_Market.Controllers
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync(); // Revertir en caso de error
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error al procesar pedido");
                 return Json(new { success = false, message = "Error interno del servidor: " + ex.Message });
             }
@@ -516,8 +498,9 @@ namespace Ezel_Market.Controllers
         {
             try
             {
-                var producto = await _context.Inventario
-                    .Include(p => p.Categoria)
+                var producto = await _context.Inventarios
+                    .Include(p => p.CategoriaInventarios)
+                        .ThenInclude(ci => ci.Categoria)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (producto == null)
@@ -525,11 +508,13 @@ namespace Ezel_Market.Controllers
                     return NotFound();
                 }
 
+                var categoriaNombre = producto.CategoriaInventarios?.FirstOrDefault()?.Categoria?.Nombre ?? "Sin categoría";
+
                 return Json(new
                 {
                     id = producto.Id,
                     nombre = producto.NombreProducto,
-                    descripcion = $"Categoría: {producto.Categoria?.Nombre} | Marca: {producto.Marca}",
+                    descripcion = $"Categoría: {categoriaNombre} | Marca: {producto.Marca}",
                     precio = producto.PrecioVentaMinorista,
                     stock = producto.Cantidad,
                     imagenUrl = producto.Imagen,
@@ -548,9 +533,10 @@ namespace Ezel_Market.Controllers
         {
             try
             {
-                var productos = await _context.Inventario
-                    .Where(p => p.CategoriasId == categoriaId && p.Cantidad > 0)
-                    .Include(p => p.Categoria)
+                var productos = await _context.Inventarios
+                    .Where(p => p.CategoriaInventarios.Any(ci => ci.CategoriaId == categoriaId) && p.Cantidad > 0)
+                    .Include(p => p.CategoriaInventarios)
+                        .ThenInclude(ci => ci.Categoria)
                     .OrderBy(p => p.NombreProducto)
                     .Select(p => new
                     {
@@ -559,7 +545,7 @@ namespace Ezel_Market.Controllers
                         precio = p.PrecioVentaMinorista,
                         imagen = p.Imagen,
                         stock = p.Cantidad,
-                        categoria = p.Categoria.Nombre
+                        categoria = p.CategoriaInventarios.FirstOrDefault().Categoria.Nombre ?? "Sin categoría"
                     })
                     .ToListAsync();
 
