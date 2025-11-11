@@ -19,6 +19,9 @@ namespace Ezel_Market.Data
         public DbSet<Carrito> Carrito { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
+        // Reviews
+        public DbSet<Review> Reviews { get; set; }
+
 
         // HISTORIAL INVENTARIO
         public DbSet<HistorialInventario> HistorialInventarios { get; set; }

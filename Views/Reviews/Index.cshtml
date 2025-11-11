@@ -1,0 +1,62 @@
+@model IEnumerable<Ezel_Market.Models.Review>
+
+@{
+    ViewData["Title"] = "Reseñas Generales";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<!-- Botones de ordenamiento -->
+<div class="mb-3">
+    <strong>Ordenar por: </strong>
+    <a asp-action="Index" asp-route-sortOrder="recent" class="btn btn-sm btn-outline-primary">Más recientes</a>
+    <a asp-action="Index" asp-route-sortOrder="best" class="btn btn-sm btn-outline-success">Mejor calificadas</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Bebida</th>
+            <th>Usuario</th>
+            <th>Calificación</th>
+            <th>Comentario</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var review in Model)
+        {
+            <tr>
+                <td>@review.Bebida</td>
+                <td>@review.Usuario</td>
+                <td>@review.Calificacion / 5</td>
+                <td>@review.Comentario</td>
+                <td>@review.Fecha.ToString("dd/MM/yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<h3>Agregar nueva reseña</h3>
+
+<form asp-action="AddReview" method="post" class="mb-3">
+    <div class="mb-2">
+        <label for="Bebida" class="form-label">Bebida:</label>
+        <input type="text" class="form-control" id="Bebida" name="Bebida" required />
+    </div>
+
+    <!-- Campo Usuario oculto, se toma automáticamente del usuario logueado -->
+    <input type="hidden" name="Usuario" value="@User.Identity.Name" />
+
+    <div class="mb-2">
+        <label for="Calificacion" class="form-label">Calificación (1-5):</label>
+        <input type="number" class="form-control" id="Calificacion" name="Calificacion" min="1" max="5" required />
+    </div>
+    <div class="mb-2">
+        <label for="Comentario" class="form-label">Comentario:</label>
+        <textarea class="form-control" id="Comentario" name="Comentario" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Agregar Reseña</button>
+</form>
