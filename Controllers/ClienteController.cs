@@ -603,40 +603,50 @@ namespace Ezel_Market.Controllers
 
         // ========== MÉTODOS AUXILIARES ==========
 
-        [HttpGet]
-        public async Task<IActionResult> ObtenerDetallesProducto(int id)
+       [HttpGet]
+public async Task<IActionResult> ObtenerDetallesProducto(int id)
+{
+    try
+    {
+        var producto = await _context.Inventarios
+            .Include(p => p.CategoriaInventarios)
+                .ThenInclude(ci => ci.Categoria)
+            .Include(p => p.Reviews) // <-- Agregar esta línea para incluir las reseñas
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (producto == null)
         {
-            try
-            {
-                var producto = await _context.Inventarios
-                    .Include(p => p.CategoriaInventarios)
-                        .ThenInclude(ci => ci.Categoria)
-                    .FirstOrDefaultAsync(p => p.Id == id);
-
-                if (producto == null)
-                {
-                    return NotFound();
-                }
-
-                var categoriaNombre = producto.CategoriaInventarios?.FirstOrDefault()?.Categoria?.Nombre ?? "Sin categoría";
-
-                return Json(new
-                {
-                    id = producto.Id,
-                    nombre = producto.NombreProducto,
-                    descripcion = $"Categoría: {categoriaNombre} | Marca: {producto.Marca}",
-                    precio = producto.PrecioVentaMinorista,
-                    stock = producto.Cantidad,
-                    imagenUrl = producto.Imagen,
-                    caracteristicas = $"Grado Alcohol: {producto.GradoAlcohol}° | Precio Mayorista: S/ {producto.PrecioVentaMayorista}"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener detalles del producto");
-                return StatusCode(500, new { error = "Error interno del servidor" });
-            }
+            return NotFound();
         }
+
+        // Calculamos el promedio de calificaciones
+        double promedioCalificacion = 0;
+        if (producto.Reviews != null && producto.Reviews.Any())
+        {
+            promedioCalificacion = producto.Reviews.Average(r => r.Calificacion);
+        }
+
+        var categoriaNombre = producto.CategoriaInventarios?.FirstOrDefault()?.Categoria?.Nombre ?? "Sin categoría";
+
+        return Json(new
+        {
+            id = producto.Id,
+            nombre = producto.NombreProducto,
+            descripcion = $"Categoría: {categoriaNombre} | Marca: {producto.Marca}",
+            precio = producto.PrecioVentaMinorista,
+            stock = producto.Cantidad,
+            imagenUrl = producto.Imagen,
+            caracteristicas = $"Grado Alcohol: {producto.GradoAlcohol}° | Precio Mayorista: S/ {producto.PrecioVentaMayorista}",
+            promedioCalificacion = promedioCalificacion // <-- Aquí devolvemos el promedio
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error al obtener detalles del producto");
+        return StatusCode(500, new { error = "Error interno del servidor" });
+    }
+}
+
 
         [HttpGet]
         public async Task<IActionResult> ProductosPorCategoria(int categoriaId)

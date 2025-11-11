@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,12 +32,12 @@ namespace Ezel_Market.Models
         [Display(Name = "Precio Venta Minorista")]
         public decimal PrecioVentaMinorista { get; set; }
 
-        [Required(ErrorMessage = "El precio mayorista es obligatorio")] // <-- AÑADE ESTO
-        [Column(TypeName = "decimal(10,2)")] // <-- AÑADE ESTO
-        [Display(Name = "Precio Venta Mayorista")] // <-- AÑADE ESTO
+        [Required(ErrorMessage = "El precio mayorista es obligatorio")]
+        [Column(TypeName = "decimal(10,2)")]
+        [Display(Name = "Precio Venta Mayorista")]
         public decimal PrecioVentaMayorista { get; set; }
 
-        // 2. Añade este método de validación
+        // Método de validación
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (PrecioVentaMinorista < PrecioVentaMayorista)
@@ -57,5 +58,12 @@ namespace Ezel_Market.Models
 
         // Puedes guardar la imagen como URL
         public string Imagen { get; set; }
+
+        // Propiedad calculada para el promedio de reseñas
+        [NotMapped]
+        public double PromedioCalificacion { get; set; }
+
+        // RELACIÓN CON RESEÑAS
+        public ICollection<Review>? Reviews { get; set; }
     }
 }
