@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Ezel_Market.Models;
-using Ezel_Market.Data; // Tu DbContext
+using Ezel_Market.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace Ezel_Market.Controllers
@@ -17,8 +19,7 @@ namespace Ezel_Market.Controllers
         // GET: /Reviews/Index
         public IActionResult Index(string sortOrder)
         {
-            var reviews = from r in _context.Reviews
-                          select r;
+            var reviews = _context.Reviews.Include(r => r.Inventario).AsQueryable();
 
             switch (sortOrder)
             {
@@ -31,25 +32,32 @@ namespace Ezel_Market.Controllers
                     break;
             }
 
+            // Cargar bebidas para el formulario
+            ViewBag.Bebidas = new SelectList(_context.Inventarios.OrderBy(i => i.NombreProducto), "Id", "NombreProducto");
+
             ViewData["CurrentSort"] = sortOrder;
             return View(reviews.ToList());
         }
 
         // POST: /Reviews/AddReview
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult AddReview(Review newReview)
         {
             if (ModelState.IsValid)
             {
-                // Asignamos el usuario logueado y la fecha actual
-                newReview.Usuario = User.Identity.Name; 
+                newReview.Usuario = User.Identity.Name;
                 newReview.Fecha = System.DateTime.Now;
 
                 _context.Reviews.Add(newReview);
                 _context.SaveChanges();
+                return RedirectToAction("Index");
             }
 
-            return RedirectToAction("Index");
+            // Si hay error, recargar bebidas y lista de reseñas
+            ViewBag.Bebidas = new SelectList(_context.Inventarios.OrderBy(i => i.NombreProducto), "Id", "NombreProducto");
+            var reviews = _context.Reviews.Include(r => r.Inventario).ToList();
+            return View("Index", reviews);
         }
     }
 }
