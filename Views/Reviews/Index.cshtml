@@ -13,6 +13,7 @@
     <a asp-action="Index" asp-route-sortOrder="best" class="btn btn-sm btn-outline-success">Mejor calificadas</a>
 </div>
 
+<!-- Tabla de reseñas -->
 <table class="table table-striped">
     <thead>
         <tr>
@@ -27,7 +28,7 @@
         @foreach (var review in Model)
         {
             <tr>
-                <td>@review.Bebida</td>
+                <td>@review.Inventario?.NombreProducto</td>
                 <td>@review.Usuario</td>
                 <td>@review.Calificacion / 5</td>
                 <td>@review.Comentario</td>
@@ -41,22 +42,40 @@
 
 <h3>Agregar nueva reseña</h3>
 
+@{
+    // Creamos un objeto Review temporal para el formulario
+    var newReview = new Ezel_Market.Models.Review();
+}
+
 <form asp-action="AddReview" method="post" class="mb-3">
-    <div class="mb-2">
-        <label for="Bebida" class="form-label">Bebida:</label>
-        <input type="text" class="form-control" id="Bebida" name="Bebida" required />
-    </div>
-
-    <!-- Campo Usuario oculto, se toma automáticamente del usuario logueado -->
-    <input type="hidden" name="Usuario" value="@User.Identity.Name" />
+    @Html.AntiForgeryToken()
 
     <div class="mb-2">
-        <label for="Calificacion" class="form-label">Calificación (1-5):</label>
-        <input type="number" class="form-control" id="Calificacion" name="Calificacion" min="1" max="5" required />
+        <label asp-for="@newReview.InventarioId" class="form-label">Bebida:</label>
+        <select asp-for="@newReview.InventarioId" class="form-control" asp-items="ViewBag.Bebidas">
+            <option value="">-- Seleccione una bebida --</option>
+        </select>
+        <span asp-validation-for="@newReview.InventarioId" class="text-danger"></span>
     </div>
+
     <div class="mb-2">
-        <label for="Comentario" class="form-label">Comentario:</label>
-        <textarea class="form-control" id="Comentario" name="Comentario" rows="3" required></textarea>
+        <label asp-for="@newReview.Calificacion" class="form-label">Calificación (1-5):</label>
+        <input asp-for="@newReview.Calificacion" type="number" min="1" max="5" class="form-control" />
+        <span asp-validation-for="@newReview.Calificacion" class="text-danger"></span>
     </div>
+
+    <div class="mb-2">
+        <label asp-for="@newReview.Comentario" class="form-label">Comentario:</label>
+        <textarea asp-for="@newReview.Comentario" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="@newReview.Comentario" class="text-danger"></span>
+    </div>
+
+    <!-- Usuario se toma automáticamente del login -->
+    <input type="hidden" asp-for="@newReview.Usuario" value="@User.Identity.Name" />
+
     <button type="submit" class="btn btn-primary">Agregar Reseña</button>
 </form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
